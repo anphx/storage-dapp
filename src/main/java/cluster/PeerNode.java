@@ -72,8 +72,8 @@ public class PeerNode implements Runnable {
 
             // Wait 10ms for a response, otherwise dismiss
             int rc = poller.poll(10 * 1000);
-//            if (rc == -1)
-//                break; //  Interrupted
+            if (rc == -1)
+                break; //  Interrupted
 
             //  Handle incoming requests
             if (poller.pollin(0)) {
@@ -168,6 +168,7 @@ public class PeerNode implements Runnable {
         subSock.connect(String.format(Shared.LOCAL_PUBLISH_SOCK, clusterName));
 
         dealerSock = ctx.createSocket(ZMQ.DEALER);
+        dealerSock.setIdentity(myID);
         dealerSock.connect(String.format(Shared.LOCAL_ROUTER_SOCK, clusterName));
     }
 
@@ -194,9 +195,10 @@ public class PeerNode implements Runnable {
     }
 
     private int doInsert(byte[] inputBytes) {
+        System.out.println("PEER: added shit to my db");
         // Convert str to bitset
-//        BitSet inputSet = new BitSet(chunkBits);
-        BitSet inputSet = BitSet.valueOf(inputBytes);
+        BitSet inputSet = new BitSet(chunkBits);
+//        BitSet inputSet = BitSet.valueOf(inputBytes);
         if (inputSet.size() != chunkBits) return 0;
 
         // Find suitable memory
@@ -244,7 +246,8 @@ public class PeerNode implements Runnable {
     }
 
     private byte[] doMatch(byte[] query) {
-        BitSet inputStr = BitSet.valueOf(query);
+//        BitSet inputStr = BitSet.valueOf(query);
+        BitSet inputStr = new BitSet();
 
         if (inputStr.size() != chunkBits) return null;
         byte[] resultArr = new byte[chunkBits];
@@ -258,24 +261,26 @@ public class PeerNode implements Runnable {
     }
 
     private void handleResquest(ZMsg msg) {
-        String clusterSrc = msg.popString();
+        System.out.println("PEER RECEIVED THIS:");
+        msg.dump();
         byte[] msgContent = msg.pop().getData();
         char cmdType = msg.popString().charAt(0);
-        String clusterAddr = msg.popString();
         switch (cmdType) {
             // ADD
             case 'A':
+
                 doInsert(msgContent);
                 break;
             case 'Q':
+                System.out.println("PEER received a query");
                 // AnP: msg content has 2 parts: [query][node_addressx2B]
                 // need to separate these parts here to process query only
+                String clusterAddr = msg.popString();
+
                 int msgLength = msgContent.length;
                 byte[] peerDst = Arrays.copyOfRange(msgContent, msgLength - 2, msgLength - 1);
                 byte[] query = Arrays.copyOfRange(msgContent, 0, msgContent.length - 3);
                 sendResponse(doMatch(query), peerDst, clusterAddr);
-
-                // TODO: Send back response
                 break;
             case 'R':
 //                doHandleResponse(msgContent);

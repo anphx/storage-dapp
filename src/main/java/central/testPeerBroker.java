@@ -1,6 +1,7 @@
 package central;
 
 
+import common.Msg;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
