@@ -11,27 +11,27 @@ public class testPeerBroker {
     private static ZMQ.Socket subscriber;
     private static ZMQ.Socket dealer;
 
-    public static void sendQuery(String q){
+    public static void sendQuery(byte[] q){
         ZMsg outgoing=ZMsg.newStringMsg("Q");
         outgoing.push(q);
         outgoing.send(dealer);
     }
-    public static void sendAdd(String q){
+    public static void sendAdd(byte[] q){
         ZMsg outgoing=ZMsg.newStringMsg("A");
         outgoing.push(q);
         outgoing.send(dealer);
 
     }
-    public static void sendResponse(String resp, String Address){
+    public static void sendResponse(byte[] resp, String ClusterAddress){
         ZMsg outgoing=ZMsg.newStringMsg("R");
         outgoing.push("message");
         outgoing.push("destination address");
         outgoing.send(dealer);
 
     }
-    public static void sendJoin(String address){
+    public static void sendJoin(String Clusteraddress){
         ZMsg outgoing=ZMsg.newStringMsg("J");
-        outgoing.push(address);
+        outgoing.push(Clusteraddress);
         outgoing.send(dealer);
     }
     //Init stuff in constructor......
