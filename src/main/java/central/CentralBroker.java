@@ -47,12 +47,21 @@ public class CentralBroker {
         switch (m.Type.charAt(0))
         {
             case 'A':
+                System.out.println("Add message");
+                break;
             case 'Q':
+                System.out.println("Query message");
+                break;
             case 'R':
+                System.out.println("Response message");
+                break;
             case 'J':
+                System.out.println("Join message");
+                break;
         }
     }
-    public static void main(String[] args)throws Exception{
+    public static void main(String[] args){
+
         //initialize sockets
         new CentralBroker();
 
@@ -69,7 +78,12 @@ public class CentralBroker {
         //mainloop
         while(true)
         {
-            Msg incoming = new Msg(ZMsg.recvMsg(router));
+            Msg incoming = null;
+            try {
+                incoming = new Msg(ZMsg.recvMsg(router));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             incoming.dump();
             handleMessage(incoming);
         }

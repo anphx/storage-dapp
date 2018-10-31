@@ -11,6 +11,29 @@ public class testPeerBroker {
     private static ZMQ.Socket subscriber;
     private static ZMQ.Socket dealer;
 
+    public static void sendQuery(String q){
+        ZMsg outgoing=ZMsg.newStringMsg("Q");
+        outgoing.push(q);
+        outgoing.send(dealer);
+    }
+    public static void sendAdd(String q){
+        ZMsg outgoing=ZMsg.newStringMsg("A");
+        outgoing.push(q);
+        outgoing.send(dealer);
+
+    }
+    public static void sendResponse(String resp, String Address){
+        ZMsg outgoing=ZMsg.newStringMsg("R");
+        outgoing.push("message");
+        outgoing.push("destination address");
+        outgoing.send(dealer);
+
+    }
+    public static void sendJoin(String address){
+        ZMsg outgoing=ZMsg.newStringMsg("J");
+        outgoing.push(address);
+        outgoing.send(dealer);
+    }
     //Init stuff in constructor......
     public testPeerBroker(){
         context=new ZContext(1);
@@ -37,10 +60,9 @@ public class testPeerBroker {
         dealer.close();
         context.destroy();
     }
-    public static void main(String[] args)throws Exception{
+    public static void main (String[] args){
         //initialize sockets
         new testPeerBroker();
-
         //handle interrupt to cleanup properly
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
@@ -49,10 +71,10 @@ public class testPeerBroker {
             }
         }));
 
-
-        ZMsg outgoing=ZMsg.newStringMsg("JOIN");
-        outgoing.push("44");
-        outgoing.send(dealer);
+        sendAdd("add query");
+        sendJoin("join address");
+        sendQuery("search query");
+        sendResponse("response message","destination address");
 
         ZMsg incoming;
         //mainloop
