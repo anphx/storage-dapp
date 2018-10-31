@@ -11,29 +11,7 @@ public class testPeerBroker {
     private static ZMQ.Socket subscriber;
     private static ZMQ.Socket dealer;
 
-    public static void sendQuery(byte[] q){
-        ZMsg outgoing=ZMsg.newStringMsg("Q");
-        outgoing.push(q);
-        outgoing.send(dealer);
-    }
-    public static void sendAdd(byte[] q){
-        ZMsg outgoing=ZMsg.newStringMsg("A");
-        outgoing.push(q);
-        outgoing.send(dealer);
 
-    }
-    public static void sendResponse(byte[] resp, String ClusterAddress){
-        ZMsg outgoing=ZMsg.newStringMsg("R");
-        outgoing.push("message");
-        outgoing.push("destination address");
-        outgoing.send(dealer);
-
-    }
-    public static void sendJoin(String Clusteraddress){
-        ZMsg outgoing=ZMsg.newStringMsg("J");
-        outgoing.push(Clusteraddress);
-        outgoing.send(dealer);
-    }
     //Init stuff in constructor......
     public testPeerBroker(){
         context=new ZContext(1);
@@ -43,7 +21,8 @@ public class testPeerBroker {
         //bindings....
         subscriber.connect(String.format("%s://localhost:%s",
                 Resources.getInstance().PUB_SUB_PROTOCOL,Resources.getInstance().PUB_SUB_PORT));
-        dealer.setIdentity("0913404k4822".getBytes());
+        subscriber.subscribe("");
+        //dealer.setIdentity("0913404k4822".getBytes());
         dealer.connect(String.format("%s://localhost:%s",
                 Resources.getInstance().ROUTER_DEALER_PROTOCOL,Resources.getInstance().ROUTER_DEALER_PORT));
         try {
@@ -60,7 +39,7 @@ public class testPeerBroker {
         dealer.close();
         context.destroy();
     }
-    public static void main (String[] args){
+    public static void main (String[] args)throws Exception{
         //initialize sockets
         new testPeerBroker();
         //handle interrupt to cleanup properly
@@ -71,19 +50,46 @@ public class testPeerBroker {
             }
         }));
 
-        sendAdd("add query".getBytes());
-        sendJoin("join address");
-        sendQuery("search query".getBytes());
-        sendResponse("response message".getBytes(),"destination address");
+        Resources.getInstance().getAddMessage("add query".getBytes()).send(dealer);
+        Resources.getInstance().getJoinMessage(dealer.getIdentity()).send(dealer);
+        Resources.getInstance().getQueryMessage("add query".getBytes()).send(dealer);
+        Resources.getInstance().getResponseMessage("response body".getBytes(),dealer.getIdentity()).send(dealer);
+
+//        sendAdd("add query".getBytes());
+//        sendJoin("join address");
+//        sendQuery("search query".getBytes());
+//        sendResponse("response message".getBytes(),"destination address");
+
+//        new Thread(new Runnable() {
+//            public void run() {
+//                ZMsg inc;
+//                while(true)
+//                {
+//                    inc=ZMsg.recvMsg(subscriber);
+//                    try {
+//                        new Msg(inc).dump();
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                    System.out.print("DEALER: incoming message of size: "+inc.size());
+//                    //loop to handle message according to its type;;;
+//                }
+//            }
+//        });
+
+
 
         ZMsg incoming;
         //mainloop
         while(true)
         {
-            incoming=ZMsg.recvMsg(dealer);
+            //used to be dealer -- TODO: POLL this shit
+            incoming=ZMsg.recvMsg(subscriber);
+            new Msg(incoming).dump();
             System.out.print("DEALER: incoming message of size: "+incoming.size());
             //loop to handle message according to its type;;;
         }
+
     }
 
 }
