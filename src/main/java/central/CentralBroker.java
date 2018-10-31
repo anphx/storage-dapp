@@ -39,6 +39,16 @@ public class CentralBroker {
         router.close();
         context.destroy();
     }
+
+    public static void handleMessage(Msg m){
+        //outgoing=ZMsg.newStringMsg("ACK");
+        //outgoing.push(incoming.Source);
+        //outgoing.send(router);
+        switch (m.Type)
+        {
+            //case ""
+        }
+    }
     public static void main(String[] args)throws Exception{
         //initialize sockets
         new CentralBroker();
@@ -51,13 +61,14 @@ public class CentralBroker {
             }
         }));
 
-        ZMsg incoming=null;
+        ZMsg outgoing;//= ZMsg.newStringMsg("ACK");
+
         //mainloop
         while(true)
         {
-            incoming=ZMsg.recvMsg(router);
-            System.out.print("ROUTER: incoming message of size: "+incoming.size());
-            //loop to handle message according to its type;;;
+            Msg incoming = new Msg(ZMsg.recvMsg(router));
+            incoming.dump();
+            handleMessage(incoming);
         }
     }
 
