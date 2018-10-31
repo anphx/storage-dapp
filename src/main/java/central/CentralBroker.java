@@ -44,9 +44,12 @@ public class CentralBroker {
         //outgoing=ZMsg.newStringMsg("ACK");
         //outgoing.push(incoming.Source);
         //outgoing.send(router);
-        switch (m.Type)
+        switch (m.Type.charAt(0))
         {
-            //case ""
+            case 'A':
+            case 'Q':
+            case 'R':
+            case 'J':
         }
     }
     public static void main(String[] args)throws Exception{
