@@ -11,7 +11,7 @@ import org.zeromq.ZMQ;
 
 public class PeerBroker {
     public ZContext ctx;
-    public ZMQ.Socket insertbe;
+    public ZMQ.Socket pubSock;
     public ZMQ.Socket insertfe;
     private String name;
 
@@ -45,7 +45,7 @@ public class PeerBroker {
                 self.insertfe.send("Insert req RECEIVED: " + result);
 
                 System.out.println("Broadcast request from client:\n" + result);
-                self.insertbe.send("Broadcast Insert req received: " + result);
+                self.pubSock.send("Broadcast Insert req received: " + result);
             }
         }
 //        self.ctx.destroy();
@@ -56,15 +56,11 @@ public class PeerBroker {
 
         // Socket to talk to peer node
         insertfe = ctx.createSocket(ZMQ.REP);
-//        insertfe.bind("tcp://*:2261");
-        insertfe.bind(String.format("ipc://%s-insertfe.ipc", name));
-
+        insertfe.bind(String.format(Shared.INSERT_FE_ADDR, name));
 
         //  Bind insert backend to endpoint
-        insertbe = ctx.createSocket(ZMQ.PUB);
-        insertbe.bind(String.format("ipc://%s-insertbe.ipc", name));
-
-//        insertbe.bind("tcp://*:2262");
+        pubSock = ctx.createSocket(ZMQ.PUB);
+        pubSock.bind(String.format(Shared.PUBLISH_SOCK_ADDR, name));
 
         //  Bind search backend to endpoint
 //        ZMQ.Socket searchbe = ctx.createSocket(ZMQ.PUB);
