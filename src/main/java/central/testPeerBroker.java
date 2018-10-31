@@ -71,10 +71,10 @@ public class testPeerBroker {
             }
         }));
 
-        sendAdd("add query");
+        sendAdd("add query".getBytes());
         sendJoin("join address");
-        sendQuery("search query");
-        sendResponse("response message","destination address");
+        sendQuery("search query".getBytes());
+        sendResponse("response message".getBytes(),"destination address");
 
         ZMsg incoming;
         //mainloop
