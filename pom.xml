@@ -14,16 +14,6 @@
             <artifactId>jeromq</artifactId>
             <version>0.4.3</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.jeromq</groupId>-->
-            <!--<artifactId>jeromq</artifactId>-->
-            <!--<version>0.2.0</version>-->
-        <!--</dependency>-->
-        <dependency>
-            <groupId>info.picocli</groupId>
-            <artifactId>picocli</artifactId>
-            <version>3.7.0</version>
-        </dependency>
         <dependency>
             <groupId>com.github.haifengl</groupId>
             <artifactId>smile-core</artifactId>
