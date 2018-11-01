@@ -291,7 +291,6 @@ public class PeerNode implements Runnable {
 
     private void handleRequest(ZMsg msg) {
         System.out.print("NODE-"+index+" RECEIVED THIS: ");
-        msg.dump();
         try {
             String dst = msg.popString();
             byte[] msgContent = msg.pop().getData();
