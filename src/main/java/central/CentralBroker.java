@@ -18,10 +18,10 @@ public class CentralBroker {
         router = context.createSocket(ZMQ.ROUTER);
 
         //bindings....
-        publisher.bind(String.format(Shared.CENTRAL_ADDR, Shared.PUB_SUB_PROTOCOL, Shared.PUB_SUB_PORT));
+        publisher.bind(String.format(Shared.CENTRAL_LOCAL_ADDR, Shared.PUB_SUB_PROTOCOL, Shared.PUB_SUB_PORT));
 //        publisher.bind(String.format("%s://localhost:%s",
 //                Resources.getInstance().PUB_SUB_PROTOCOL, Resources.getInstance().PUB_SUB_PORT));
-        router.bind(String.format(Shared.CENTRAL_ADDR, Shared.ROUTER_DEALER_PROTOCOL, Shared.ROUTER_DEALER_PORT));
+        router.bind(String.format(Shared.CENTRAL_LOCAL_ADDR, Shared.ROUTER_DEALER_PROTOCOL, Shared.ROUTER_DEALER_PORT));
 // router.bind(String.format("%s://localhost:%s",
 //                Resources.getInstance().ROUTER_DEALER_PROTOCOL, Resources.getInstance().ROUTER_DEALER_PORT));
         try {
