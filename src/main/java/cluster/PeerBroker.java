@@ -34,13 +34,14 @@ public class PeerBroker {
         self.initializeGateway();
 
         self.initializeNodes(args);
+        ZMQ.Poller poller = self.ctx.createPoller(3);
+        poller.register(self.routerSock, ZMQ.Poller.POLLIN);
+        poller.register(self.subscriber, ZMQ.Poller.POLLIN);
+        poller.register(self.dealer, ZMQ.Poller.POLLIN);
 
         while (true) {
             //  Poll for activity, or 1 second timeout
-            ZMQ.Poller poller = self.ctx.createPoller(3);
-            poller.register(self.routerSock, ZMQ.Poller.POLLIN);
-            poller.register(self.subscriber, ZMQ.Poller.POLLIN);
-            poller.register(self.dealer, ZMQ.Poller.POLLIN);
+
 
             int rc = poller.poll(  -1);
             if (rc == -1)
@@ -121,7 +122,7 @@ public class PeerBroker {
                 withGui = true;
                 numberOfGui--;
             }
-            new Thread(new PeerNode(this, nChunks, chunkSize, hammingThres, cThres, withGui, i)).start();
+            new Thread(new PeerNode(this, nChunks, chunkSize, hammingThres, cThres, withGui, i, 100)).start();
         }
     }
 

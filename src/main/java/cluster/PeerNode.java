@@ -86,11 +86,11 @@ public class PeerNode implements Runnable {
             myGui.printInfo(constraints);
         }
         ZMQ.Poller poller = ctx.createPoller(2);
+        poller.register(subSock, ZMQ.Poller.POLLIN);
+        poller.register(dealerSock, ZMQ.Poller.POLLIN);
 
         while (!Thread.currentThread().isInterrupted()) {
             //  Poll for activity, or 1 second timeout
-            poller.register(subSock, ZMQ.Poller.POLLIN);
-            poller.register(dealerSock, ZMQ.Poller.POLLIN);
 
             // Wait 10ms for a response, otherwise dismiss
             int rc = poller.poll(-1);
