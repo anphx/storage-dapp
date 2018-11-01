@@ -99,12 +99,13 @@ public class CentralBroker {
             ZMQ.Poller poller = context.createPoller(1);
             poller.register(router, ZMQ.Poller.POLLIN);
             int rc = poller.poll(1000);
+            //System.out.println("somewhere in main looop");
             if (rc == -1)
                 break; //  Interrupted
             if (poller.pollin(0)) {
                 try {
                     ZMsg msg = ZMsg.recvMsg(router);
-//                    msg.dump();
+                    msg.dump();
                     incoming = new Msg(msg);
 //                    incoming.dump();
                 } catch (Exception e) {

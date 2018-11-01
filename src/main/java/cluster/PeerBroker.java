@@ -40,7 +40,7 @@ public class PeerBroker {
             poller.register(self.subscriber, ZMQ.Poller.POLLIN);
             poller.register(self.dealer, ZMQ.Poller.POLLIN);
 
-            int rc = poller.poll(10 * 1000);
+            int rc = poller.poll(  -1);
             if (rc == -1)
                 break; //  Interrupted
 
@@ -51,13 +51,13 @@ public class PeerBroker {
                 result = ZMsg.recvMsg(self.routerSock);
                 try {
                     result.send(self.dealer, false);
-                    System.out.println("BROKER: Receive request from cloud dealer: " + result);
+                    System.out.println("BROKER: Receive SUBSCRIPTION from cloud: " + result);
 
                     if (result.peekLast().toString().charAt(0) != 'R') {
-                        System.out.println("BROKER: Send to pubSock");
+                        System.out.println("BROKER: PUBLISH");
                         result.send(self.pubSock);
                     } else {
-                        System.out.println("BROKER: Forward this to routerSock");
+                        System.out.println("BROKER: FORWARD");
                         result.send(self.routerSock);
                     }
                 } catch (Exception e) {
@@ -74,7 +74,7 @@ public class PeerBroker {
             } else if (poller.pollin(2)) {
                 // for direct requests from cloud
                 result = ZMsg.recvMsg(self.dealer);
-                System.out.println("Receive response msg" + result);
+                System.out.println("BROKER: EXCLUSIVE RESPONSE: " + result);
 
                 try {
                     Msg m = new Msg(result);
@@ -151,7 +151,7 @@ public class PeerBroker {
         } catch (InterruptedException e) {
             System.err.println("DEALER is waiting a bit to connect to ROUTER... Please don't interrupt!");
         }
-        System.out.println("finished Initializing DEALER");
+        System.out.println("BROKER: finished Initializing");
     }
 
     public String getName() {
