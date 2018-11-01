@@ -43,14 +43,14 @@ public class PeerNode implements Runnable {
     private Object[][] storageArr;
     private int queryCounter = 0;
     private int myIndex;
-    private int totalNodes;
+    private long totalNodes;
     private boolean canQuery = true;
-    private byte[] queryResult = new byte[chunkBits];
+    private byte[] queryResult;
     private byte[] prevResult;
-    private int numberOfIteration;
+    private int numOfIteration;
 
 
-    public PeerNode(PeerBroker cluster, int nChunks, int chSize, int thresholdT, int C, boolean withGui, int index, int total) {
+    public PeerNode(PeerBroker cluster, int nChunks, int chSize, int thresholdT, int C, boolean withGui, int index, long total) {
         peerCluster = cluster;
         maxChunks = nChunks;
         chunkBits = chSize;
@@ -60,7 +60,6 @@ public class PeerNode implements Runnable {
         sumThreshold = C;
         myIndex = index;
         totalNodes = total;
-//        myID = String.valueOf(myIndex).getBytes();
 
         ByteBuffer dbuf = ByteBuffer.allocate(2);
         dbuf.putShort((short) index);
@@ -120,7 +119,6 @@ public class PeerNode implements Runnable {
 
     public void sendQuery(String input) {
         if (!canQuery) return;
-//        byte[] msgContent = concatByteArray(input.getBytes(), myID);
         //@AmiR
         //System.out.println("NODE-"+myIndex+": SENDING QUERY: " + input);
         if (isGui) {
@@ -130,7 +128,8 @@ public class PeerNode implements Runnable {
         // AnP: This is to mark the iteration of a query request
         // use this to trace all responses and send another query
         // turn on canQuery class only when this iteration is done
-        numberOfIteration = 1;
+        numOfIteration = 1;
+        queryResult = new byte[chunkBits];
         queryCounter = 0;
         myQuery = input;
         canQuery = false;
@@ -151,7 +150,6 @@ public class PeerNode implements Runnable {
             // AnP: All responses for query are received
             BitSet query = new BitSet(chunkBits);
             for (int i = 0; i < queryResult.length; i++) {
-//               queryResult[i] = queryResult[i] < 0 ? (byte)0 : (byte)1;
                 if (queryResult[i] >= 0) {
                     query.set(i);
                     queryResult[i] = 1;
@@ -185,7 +183,7 @@ public class PeerNode implements Runnable {
                     }
                     return;
                 }
-                if (numberOfIteration >= chunkBytes) {
+                if (numOfIteration >= chunkBytes) {
                     canQuery = true;
 
                     // AnP: Terminate because you've done enough
@@ -197,14 +195,11 @@ public class PeerNode implements Runnable {
             }
             prevResult = queryResult;
             Shared.sendQuery(myQuery.getBytes(), dealerSock);
-            numberOfIteration++;
+            numOfIteration++;
         }
     }
 
     public void sendInsert(String input) {
-//        ZMsg outgoing = ZMsg.newStringMsg("A");
-//        outgoing.push(input.getBytes());
-//        outgoing.send(dealerSock);
         //@AmiR
         //System.out.println("NODE-"+myIndex+": SENDING INSERT " + input);
         Shared.sendAdd(input.getBytes(), dealerSock);
@@ -247,19 +242,14 @@ public class PeerNode implements Runnable {
 
     private byte[] randomize() {
         Random random = new Random();
-//        BitSet bits = new BitSet(chunkBits);
         byte[] addresses = new byte[chunkBytes];
-        new Random().nextBytes(addresses);
-//        for (int i = 0; i < chunkBits; ++i)
-//            bits.set(i, random.nextBoolean());
+        random.nextBytes(addresses);
 
         return addresses;
     }
 
     private int doInsert(byte[] inputBytes) {
         System.out.println("NODE-" + myIndex + ": is adding chunk to my db...");
-        // Convert str to bitset
-//        BitSet inputSet = new BitSet(chunkBits);
         if (inputBytes.length != chunkBytes) return 0;
         BitSet inputBs = BitSet.valueOf(inputBytes);
 
@@ -294,10 +284,6 @@ public class PeerNode implements Runnable {
         byte[] curr = (byte[]) storageArr[index][1];
 
         if (currMax >= sumThreshold) return curr;
-//        if (input.size() != chunkBits) {
-//            System.out.println("NODE-"+myIndex+"Invalid format of input, should be " + chunkBits + " bits in size");
-//            return curr;
-//        }
         byte[] result = new byte[chunkBits];
         int max = 0;
         for (int i = 0; i < chunkBits; i++) {
@@ -324,10 +310,6 @@ public class PeerNode implements Runnable {
     }
 
     private byte[] doMatch(byte[] query) {
-//        BitSet inputStr = BitSet.valueOf(query);
-//        BitSet inputStr = new BitSet();
-
-//        if (query.length != chunkBytes) return null;
         byte[] resultArr = new byte[chunkBits];
         for (int i = 0; i < storageArr.length; i++) {
             int addrDist = HammingDistance.d((byte[]) storageArr[i][0], query);
@@ -349,33 +331,20 @@ public class PeerNode implements Runnable {
             switch (cmdType) {
                 // ADD
                 case 'A':
-//                    String sender = msg.popString();
-//                    msgContent = msg.pop().getData();
                     msgContent = parsedMsg.Command;
                     doInsert(msgContent);
                     break;
                 case 'Q':
                     // AnP: msg content has 2 parts: [query][node_addressx2B]
                     // need to separate these parts here to process query only
-
-//                    String clusterAddr = msg.peekFirst().toString();
-//                    int msgLength = msgContent.length;
-//                    byte[] peerDst = Arrays.copyOfRange(msgContent, msgLength - 2, msgLength - 1);
-//                    byte[] query = Arrays.copyOfRange(msgContent, 0, msgContent.length - 2);
-
-//                    msgContent = msg.pop().getData();
                     msgContent = parsedMsg.Command;
                     System.out.println("NODE-" + myIndex + ": HANDLING QUERY: " + new String(msgContent));
-//                    sendResponse(doMatch(msgContent), dst.getBytes(), dst.getBytes());
+
                     sendResponse(doMatch(msgContent), parsedMsg.Source.getBytes(), parsedMsg.Source.getBytes());
 
                     break;
                 case 'R':
                     // AnP: Don't do anything here because we only handle direct response
-                    //@AmiR
-                    //System.out.println("NODE-"+myIndex+": HANDLING A RESPONSE.. ");
-
-                    //doHandleResponse(msgContent);
                     break;
 
             }
@@ -385,7 +354,6 @@ public class PeerNode implements Runnable {
     }
 
     public void sendResponse(byte[] resp, byte[] dst, byte[] clusterAddr) {
-//        byte[] content = concatByteArray(resp, dst);
         System.out.println("NODE-" + myIndex + ": SENDING RESPONSE " + resp);
         Shared.getResponseMessage(resp, clusterAddr).send(dealerSock);
     }

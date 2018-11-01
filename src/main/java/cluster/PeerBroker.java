@@ -20,8 +20,8 @@ public class PeerBroker {
     private static ZMQ.Socket dealer;
     private String name;
 
-    private int numberOfNodes;
-    private int totalNodes = numberOfNodes * 1; // S=P*N -> P is the number of clusters
+    private int numOfNodes;
+//    private int totalNodes; // S=P*N -> P is the number of clusters
 
 
     public PeerBroker(String name) {
@@ -98,31 +98,25 @@ public class PeerBroker {
     }
 
     /**
-     * @param args numberOfNodes - nChunks - chunkSize - hammingThres - threshold C - numberOfGui
+     * @param args numOfNodes - nChunks - chunkSize - hammingThres - threshold C - numberOfGui - numberOfCluster
      */
     private void initializeNodes(String[] args) {
-        numberOfNodes = Integer.parseInt(args[0]);
+        numOfNodes = Integer.parseInt(args[0]);
         int nChunks = Integer.parseInt(args[1]);
         int chunkSize = Integer.parseInt(args[2]);
         int hammingThres = Integer.parseInt(args[3]);
         int cThres = Integer.parseInt(args[4]);
-        int numberOfGui = Integer.parseInt(args[5]);
+        int numOfGui = Integer.parseInt(args[5]);
+        long numOfCluster = Integer.parseInt(args[6]);
 
-        int[] rand = new int[]{
-                new Random().nextInt(numberOfNodes),
-                new Random().nextInt(numberOfNodes),
-                new Random().nextInt(numberOfNodes),
-                new Random().nextInt(numberOfNodes)
-        };
-
-        for (int i = 0; i < numberOfNodes; i++) {
+        for (int i = 0; i < numOfNodes; i++) {
             boolean withGui = false;
-            if (numberOfGui > 0) {
+            if (numOfGui > 0) {
                 // TODO: Improve randomness of node pick
                 withGui = true;
-                numberOfGui--;
+                numOfGui--;
             }
-            new Thread(new PeerNode(this, nChunks, chunkSize, hammingThres, cThres, withGui, i, totalNodes)).start();
+            new Thread(new PeerNode(this, nChunks, chunkSize, hammingThres, cThres, withGui, i, numOfCluster*numOfNodes)).start();
         }
     }
 
