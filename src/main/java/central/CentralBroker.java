@@ -43,8 +43,8 @@ public class CentralBroker {
         //outgoing=ZMsg.newStringMsg("ACK");
         //outgoing.push(incoming.Source);
         //outgoing.send(router);
-        System.out.println("handling message..........");
-        m.dump();
+        //System.out.println("handling message..........");
+        //m.dump();
         ZMsg msg;
         try {
 
@@ -52,13 +52,13 @@ public class CentralBroker {
                 case 'Q':
                     System.out.println("Query message");
                     msg = Shared.getQueryMessage(m.Command, m.Destination.getBytes());
-                    msg.dump();
+                    //msg.dump();
                     msg.send(publisher);
                     break;
                 case 'A':
                     System.out.println("Add message");
                     msg = Shared.getAddMessage(m.Command, publisher);
-                    msg.dump();
+                    //msg.dump();
                     msg.send(publisher);
                     break;
                 case 'R':
@@ -106,7 +106,7 @@ public class CentralBroker {
             if (poller.pollin(0)) {
                 try {
                     ZMsg msg = ZMsg.recvMsg(router);
-                    msg.dump();
+                    //msg.dump();
                     incoming = new Msg(msg);
 //                    incoming.dump();
                 } catch (Exception e) {
