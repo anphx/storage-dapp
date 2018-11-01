@@ -12,7 +12,8 @@ public class PeerNodeGui {
     private JTextArea txtOut;
     private JTextArea txtHistory;
     private JTextArea txtInfo;
-    private JTextArea txtStorage;
+    private JTextArea txtBitStr;
+    private JButton clearConsoleButton;
 
     private PeerNode peerNode;
 
@@ -34,6 +35,11 @@ public class PeerNodeGui {
                 track("Wating for reply.....\n");
             }
         });
+        clearConsoleButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                txtOut.setText("");
+            }
+        });
     }
 
     public void printlnOut(String text) {
@@ -46,9 +52,9 @@ public class PeerNodeGui {
 
     public void printToStorage(String text, boolean newline) {
         if (newline) {
-            txtStorage.append(text + "\n");
+            txtBitStr.append(text + "\n");
         } else {
-            txtStorage.append(text);
+            txtBitStr.append(text);
         }
     }
 

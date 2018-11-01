@@ -19,7 +19,9 @@ import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 import smile.math.distance.HammingDistance;
 
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Date;
 import java.util.Random;
@@ -28,7 +30,7 @@ import java.util.Random;
 @SuppressWarnings("Since15")
 public class PeerNode implements Runnable {
     public byte[] myID;
-    String myQuery = "";
+    public String myQuery = "";
     private PeerBroker peerCluster;
     private ZContext ctx;
     private ZMQ.Socket subSock;
@@ -46,7 +48,7 @@ public class PeerNode implements Runnable {
     private long totalNodes;
     private boolean canQuery = true;
     private byte[] queryResult;
-    private byte[] prevResult;
+    private byte[] prevResult = null;
     private int numOfIteration;
 
 
@@ -62,7 +64,7 @@ public class PeerNode implements Runnable {
         totalNodes = total;
 
         ByteBuffer dbuf = ByteBuffer.allocate(2);
-        dbuf.putShort((short) index);
+        dbuf.putShort((short)(index + 1));
         myID = dbuf.array(); // { 0, 1 }
 
         initializeStorage();
@@ -70,6 +72,7 @@ public class PeerNode implements Runnable {
         // Initialize context to use for the whole life cycle of a node
         ctx = new ZContext(1);
         connectTo(peerCluster.getName());
+//        System.out.println("NODE-" + myIndex + "-identity: " + new String(dealerSock.getIdentity()));
     }
 
     public int getID() {
@@ -111,8 +114,6 @@ public class PeerNode implements Runnable {
                 //@AmiR
                 //System.out.println("NODE-"+myIndex+": received response\n" + incomingMsg);
                 doHandleResponse(incomingMsg);
-
-                return;
             }
         }
     }
@@ -130,6 +131,7 @@ public class PeerNode implements Runnable {
         // turn on canQuery class only when this iteration is done
         numOfIteration = 1;
         queryResult = new byte[chunkBits];
+        prevResult = null;
         queryCounter = 0;
         myQuery = input;
         canQuery = false;
@@ -138,7 +140,11 @@ public class PeerNode implements Runnable {
     }
 
     private void doHandleResponse(ZMsg incomingMsg) {
-        String sender = incomingMsg.popString();
+//        System.out.println("NODE-" + myIndex + ": HANDLING RESPONSE!!!!!");
+//        incomingMsg.dump();
+        if (canQuery) return;
+
+//        String sender = incomingMsg.popString();
         byte[] content = incomingMsg.pop().getData();
 
         // Accumulate all responses here
@@ -147,6 +153,8 @@ public class PeerNode implements Runnable {
         queryCounter++;
 
         if (queryCounter >= totalNodes) {
+            queryCounter = 0;
+
             // AnP: All responses for query are received
             BitSet query = new BitSet(chunkBits);
             for (int i = 0; i < queryResult.length; i++) {
@@ -159,22 +167,23 @@ public class PeerNode implements Runnable {
             }
 
             if (isGui) {
-                myGui.printlnOut("===> Found this after 1 iteration ====> " + new String(query.toByteArray()));
+                myGui.printlnOut("===> Found this after " + numOfIteration + " iteration ====> " + new String(query.toByteArray()));
             }
 
             // Checking terminate condition -> start new iteration or stop
             if (prevResult != null) {
                 int distance = HammingDistance.d(prevResult, queryResult);
+//                int distance = calcHamming(prevResult, queryResult);
+
                 if (distance == 0) {
                     canQuery = true;
 
                     // AnP: Terminate with exact match
                     if (isGui) {
-                        myGui.printlnOut("===> Searching TERMINATED with exact match!!!!");
+                        myGui.printlnOut("===> Searching TERMINATED  match!!!!");
                     }
                     return;
-                }
-                if (distance >= chunkBytes / 2) {
+                } else if (distance >= chunkBytes / 2) {
                     canQuery = true;
 
                     // AnP: Terminate for no reason
@@ -182,8 +191,7 @@ public class PeerNode implements Runnable {
                         myGui.printlnOut("===> Searching TERMINATED!!!! No match found!!!!");
                     }
                     return;
-                }
-                if (numOfIteration >= chunkBytes / 2) {
+                } else if (numOfIteration >= chunkBits / 2) {
                     canQuery = true;
 
                     // AnP: Terminate because you've done enough
@@ -191,13 +199,34 @@ public class PeerNode implements Runnable {
                         myGui.printlnOut("===> Searching TERMINATED!!!! Found near match results!!!");
                     }
                     return;
+                } else {
+                    sendNextQuery(query);
                 }
+            } else {
+                sendNextQuery(query);
             }
-            prevResult = queryResult;
-            Shared.sendQuery(myQuery.getBytes(), dealerSock);
-            numOfIteration++;
         }
     }
+
+    private void sendNextQuery(BitSet query) {
+        prevResult = new byte[chunkBits];
+        prevResult = queryResult.clone();
+//        System.arraycopy(queryResult, 0, prevResult, 0, queryResult.length);
+        Shared.sendQuery(query.toByteArray(), dealerSock);
+        queryResult = new byte[chunkBits];
+        numOfIteration++;
+    }
+
+//    private int calcHamming(byte[] a, byte[] b) {
+//        if (a.length != b.length) throw new IllegalArgumentException("Size mismatch");
+//        int dist = 0;
+//        for (int i = 0; i < a.length; i++) {
+//            if (a[i] != b[i]) {
+//                dist++;
+//            }
+//        }
+//        return dist;
+//    }
 
     public void sendInsert(String input) {
         //@AmiR
@@ -205,12 +234,12 @@ public class PeerNode implements Runnable {
         Shared.sendAdd(input.getBytes(), dealerSock);
     }
 
-    private byte[] concatByteArray(byte[] a, byte[] b) {
-        byte[] content = new byte[a.length + b.length];
-        System.arraycopy(a, 0, content, 0, a.length);
-        System.arraycopy(b, 0, content, a.length, b.length);
-        return content;
-    }
+//    private byte[] concatByteArray(byte[] a, byte[] b) {
+//        byte[] content = new byte[a.length + b.length];
+//        System.arraycopy(a, 0, content, 0, a.length);
+//        System.arraycopy(b, 0, content, a.length, b.length);
+//        return content;
+//    }
 
     private int toByte(int xBits) {
         return Math.round(xBits / 8);
@@ -223,8 +252,10 @@ public class PeerNode implements Runnable {
         subSock.connect(String.format(Shared.LOCAL_PUBLISH_SOCK, clusterName));
 
         dealerSock = ctx.createSocket(ZMQ.DEALER);
-        dealerSock.setIdentity(myID);
+        dealerSock.setIdentity(String.valueOf(myIndex).getBytes(ZMQ.CHARSET));
         dealerSock.connect(String.format(Shared.LOCAL_ROUTER_SOCK, clusterName));
+//        dealerSock.send(" dsds");
+//        System.out.println("HEEEEEEEEY THIS IS MY IDENTITY:"+new String(dealerSock.getIdentity()));
     }
 
     private void initializeStorage() {
@@ -232,37 +263,69 @@ public class PeerNode implements Runnable {
         for (int i = 0; i < maxChunks; i++) {
             Object[] arr = new Object[3];
 
-            arr[0] = randomize();
+            arr[0] = randomize(); //Bitset
             arr[1] = new byte[chunkBits];
             // store max value in the data array
-            arr[2] = 0;
+            arr[2] = new Integer(0);
             storageArr[i] = arr;
         }
     }
 
-    private byte[] randomize() {
-        Random random = new Random();
-        byte[] addresses = new byte[chunkBytes];
-        random.nextBytes(addresses);
+    private BitSet randomize() {
+//        Random random = new Random();
+//        byte[] addresses = new byte[chunkBytes];
+//
+//        random.nextBytes(addresses);
+//
+//        return addresses;
 
-        return addresses;
+        Random rand = new Random();
+        BitSet bs = new BitSet(chunkBits);
+        for (int i=0; i<chunkBits; i++) {
+            bs.set(i, rand.nextBoolean());
+        }
+        return bs;
     }
 
     private int doInsert(byte[] inputBytes) {
-        System.out.println("NODE-" + myIndex + ": is adding chunk to my db...");
+       // System.out.println("NODE-" + myIndex + ": is adding chunk to my db...");
         if (inputBytes.length != chunkBytes) return 0;
         BitSet inputBs = BitSet.valueOf(inputBytes);
 
         // Find suitable memory
         for (int i = 0; i < storageArr.length; i++) {
             // Compare hamming distance of location addr and input data
-            int addrDist = HammingDistance.d((byte[]) storageArr[i][0], inputBytes);
+            //System.out.println("Amirrrrrrr: size of the bitset is: "+BitSet.valueOf((byte[])storageArr[i][0]).size() );
+            int addrDist = HammingDistance.d((BitSet)storageArr[i][0], inputBs);
             if (addrDist <= hammingT) {
+                System.out.println("*****Storing in my db******");
                 storageArr[i][1] = sumAt(inputBs, i);
             }
         }
-        printStorageInfo();
+//        printStorageInfo();
         return 1;
+    }
+
+
+    private byte[] sumAt(BitSet input, int index) {
+        int currMax = Integer.parseInt(storageArr[index][2].toString());
+        byte[] curr = (byte[]) storageArr[index][1];
+
+        if (currMax >= sumThreshold) return curr;
+        byte[] result = new byte[chunkBits];
+        int max = 0;
+
+        for (int i = 0; i < chunkBits; i++) {
+            int val = input.get(i) ? 1 : -1;
+            int temp = curr[i] + val;
+            if (Math.abs(temp) > max) {
+                max = Math.abs(temp);
+            }
+            result[i] = (byte)temp;
+        }
+//        storageArr[index][1] = result;
+        storageArr[index][2] = max;
+        return result;
     }
 
     private void printStorageInfo() {
@@ -273,38 +336,17 @@ public class PeerNode implements Runnable {
         for (int i = 0; i < storageArr.length; i++) {
             // [address][data][max]
             myGui.printToStorage(i + ": [", false);
-            myGui.printToStorage(storageArr[i][0] + "], [", false);
-            myGui.printToStorage(storageArr[i][1].toString() + "], [", false);
-            myGui.printToStorage(storageArr[i][2].toString() + "]", true);
+            myGui.printToStorage(new String(((BitSet)storageArr[i][0]).toByteArray()) + "], [", false);
+            myGui.printToStorage(storageArr[i][1] + "], [", false);
+            myGui.printToStorage(storageArr[i][2] + "]", true);
         }
-    }
-
-    private byte[] sumAt(BitSet input, int index) {
-        int currMax = Integer.parseInt(storageArr[index][2].toString());
-        byte[] curr = (byte[]) storageArr[index][1];
-
-        if (currMax >= sumThreshold) return curr;
-        byte[] result = new byte[chunkBits];
-        int max = 0;
-        for (int i = 0; i < chunkBits; i++) {
-            int val = input.get(i) ? 1 : -1;
-            int temp = curr[i] + val;
-            if (Math.abs(temp) > max) {
-                max = Math.abs(temp);
-            }
-            result[i] = (byte) temp;
-        }
-        storageArr[index][1] = result;
-        storageArr[index][2] = max;
-        return result;
     }
 
     private byte[] sumOf(byte[] curr, byte[] data) {
-        if (curr.length != data.length) return curr;
+        if (curr == null || data == null || curr.length != data.length) return curr;
         byte[] result = new byte[chunkBits];
 
         for (int i = 0; i < chunkBits; i++) {
-            
             result[i] = (byte) (curr[i] + data[i]);
         }
         return result;
@@ -316,7 +358,9 @@ public class PeerNode implements Runnable {
 
         try {
             for (int i = 0; i < storageArr.length; i++) {
-                int addrDist = HammingDistance.d((byte[]) storageArr[i][0], query);
+//                int addrDist = HammingDistance.d((byte[]) storageArr[i][0], query);
+                int addrDist = HammingDistance.d((BitSet)storageArr[i][0], BitSet.valueOf(query));
+
                 if (addrDist <= hammingT) {
                     resultArr = sumOf(resultArr, (byte[]) storageArr[i][1]);
                 }
@@ -339,7 +383,6 @@ public class PeerNode implements Runnable {
             switch (cmdType) {
                 // ADD
                 case 'A':
-
                     msgContent = parsedMsg.Command;
                     System.out.println("NODE-" + myIndex + ": HANDLING INSERT: " + new String(msgContent));
 
@@ -349,7 +392,7 @@ public class PeerNode implements Runnable {
                     // AnP: msg content has 2 parts: [query][node_addressx2B]
                     // need to separate these parts here to process query only
                     msgContent = parsedMsg.Command;
-                    System.out.println("NODE-" + myIndex + ": HANDLING QUERY: " + new String(msgContent));
+//                    System.out.println("NODE-" + myIndex + ": HANDLING QUERY: " + new String(msgContent));
 
                     sendResponse(doMatch(msgContent), parsedMsg.Source.getBytes(), parsedMsg.Source.getBytes());
 
@@ -357,7 +400,6 @@ public class PeerNode implements Runnable {
                 case 'R':
                     // AnP: Don't do anything here because we only handle direct response
                     break;
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -365,7 +407,10 @@ public class PeerNode implements Runnable {
     }
 
     public void sendResponse(byte[] resp, byte[] dst, byte[] clusterAddr) {
-        System.out.println("NODE-" + myIndex + ": SENDING RESPONSE " + resp);
-        Shared.getResponseMessage(resp, clusterAddr).send(dealerSock);
+//        System.out.println("NODE-" + myIndex + ": SENDING RESPONSE " + resp);
+        ZMsg msg = Shared.getResponseMessage(resp, clusterAddr);
+//        msg.dump();
+        msg.send(dealerSock);
+//        System.out.println("NODE-" + myIndex + ": SENT!!!!!");
     }
 }

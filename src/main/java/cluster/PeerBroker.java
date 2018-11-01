@@ -51,17 +51,21 @@ public class PeerBroker {
 
             if (poller.pollin(0)) {
                 //  Handle incoming status messages from Router socket
+
                 result = ZMsg.recvMsg(self.routerSock);
+
                 try {
                     result.send(self.dealer, false);
-                    System.out.println("BROKER: Receive SUBSCRIPTION from cloud: " + result);
+//                    System.out.println("BROKER: Receive SUBSCRIPTION from cloud: " + result);
 
                     if (result.peekLast().toString().charAt(0) != 'R') {
-                        System.out.println("BROKER: PUBLISH");
+//                        System.out.println("BROKER: PUBLISH");
                         result.send(self.pubSock);
                     } else {
-                        System.out.println("BROKER: FORWARD");
-                        result.send(self.routerSock);
+//                        System.out.println("BROKER: FORWARD RESPONSE MSG TO ORIGINAL NODE");
+                        Msg msg = new Msg(result);
+//                        msg.dump();
+                        Shared.getResponseMessage(msg.Command, msg.Destination.getBytes()).send(self.routerSock);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -69,7 +73,7 @@ public class PeerBroker {
             } else if (poller.pollin(1)) {
                 // for published msg from central node
                 result = ZMsg.recvMsg(self.subscriber);
-                result.dump();
+//                result.dump();
 
                 // AnP: Redirect this msg to all nodes.
                 result.send(self.pubSock);
@@ -77,18 +81,20 @@ public class PeerBroker {
             } else if (poller.pollin(2)) {
                 // for direct requests from cloud
                 result = ZMsg.recvMsg(self.dealer);
-                System.out.println("BROKER: EXCLUSIVE RESPONSE: " + result);
+//                System.out.println("BROKER: EXCLUSIVE RESPONSE: " + result);
 
                 try {
                     Msg m = new Msg(result);
-                    m.dump();
+//                    m.dump();
 
-                    byte[] msgContent = m.Command;
-                    int msgLength = msgContent.length;
-//                    byte[] peerDst = Arrays.copyOfRange(msgContent, msgLength - 2, msgLength - 1);
-//                    byte[] response = Arrays.copyOfRange(msgContent, 0, msgContent.length - 3);
+//                    byte[] msgContent = m.Command;
 
-                    Shared.getResponseMessage(msgContent, m.Destination.getBytes()).send(self.routerSock);
+//                    ZMsg toSend = Shared.getResponseMessage(msgContent, m.Destination.getBytes());
+//                            .send(self.routerSock);
+                    self.routerSock.sendMore(m.Destination);
+                    self.routerSock.sendMore(m.Command);
+                    self.routerSock.send("R");
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -136,7 +142,7 @@ public class PeerBroker {
         dealer = ctx.createSocket(ZMQ.DEALER);
         byte[] identity = new byte[2];
         new Random().nextBytes(identity);
-        dealer.setIdentity(identity);
+//        dealer.setIdentity(identity);
 
         //bindings....
         subscriber.connect(String.format(Shared.CENTRAL_ADDR, Shared.PUB_SUB_PROTOCOL, Shared.PUB_SUB_PORT));

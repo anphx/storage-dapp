@@ -52,10 +52,14 @@ public class Shared {
         return outgoing;
     }
 
-    public static ZMsg getResponseMessage(byte[] resp, byte[] clusterAddr) {
-        ZMsg outgoing = ZMsg.newStringMsg("R");
-        outgoing.push(resp);
-        outgoing.push(clusterAddr);
+    public static ZMsg getResponseMessage(byte[] resp, byte[] dstAddr) {
+//        ZMsg outgoing = ZMsg.newStringMsg("R");
+        ZMsg outgoing = new ZMsg();
+        outgoing.add(dstAddr);
+
+        outgoing.add(resp);
+//        outgoing.push("");
+        outgoing.add("R");
         return outgoing;
     }
 }
