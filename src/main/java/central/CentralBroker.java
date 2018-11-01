@@ -94,10 +94,11 @@ public class CentralBroker {
         ZMsg outgoing;//= ZMsg.newStringMsg("ACK");
 
         //mainloop
+        Msg incoming = null;
+        ZMQ.Poller poller = context.createPoller(1);
+        poller.register(router, ZMQ.Poller.POLLIN);
+
         while (true) {
-            Msg incoming = null;
-            ZMQ.Poller poller = context.createPoller(1);
-            poller.register(router, ZMQ.Poller.POLLIN);
             int rc = poller.poll(1000);
             //System.out.println("somewhere in main looop");
             if (rc == -1)
