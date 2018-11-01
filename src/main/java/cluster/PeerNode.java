@@ -69,7 +69,7 @@ public class PeerNode implements Runnable {
     public void run() {
         if (isGui) {
             String constraints = "" +
-                    "Maximum storage offered: " + maxChunks + "\n" + 
+                    "Maximum storage offered: " + maxChunks + "\n" +
                     "Data chunk size: "  + chunkBits + "(bits) or " + chunkBytes + " (bytes)";
 
             myGui = new PeerNodeGui(this);
