@@ -57,7 +57,7 @@ public class CentralBroker {
                     break;
                 case 'A':
                     System.out.println("Add message");
-                    msg = Shared.getAddMessage(m.Command);
+                    msg = Shared.getAddMessage(m.Command, publisher);
                     msg.dump();
                     msg.send(publisher);
                     break;

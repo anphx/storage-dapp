@@ -65,8 +65,13 @@ public class PeerNode implements Runnable {
 
     public void run() {
         if (isGui) {
+            String constraints = "" +
+                    "Maximum storage offered: " + maxChunks + "\n" + 
+                    "Data chunk size: "  + chunkBits + "(bits) or " + chunkBytes + " (bytes)";
+
             myGui = new PeerNodeGui(this);
             myGui.showup();
+//            myGui.printInfo("Constraint");
         }
 
         boolean done = false;
@@ -119,12 +124,12 @@ public class PeerNode implements Runnable {
     }
 
     public void sendQuery(String input) {
-        byte[] msgContent = concatByteArray(input.getBytes(), myID);
+//        byte[] msgContent = concatByteArray(input.getBytes(), myID);
         System.out.println("PEER NODE: @sendQuery " + input);
         myGui.printlnOut("Waiting for response from cluster broker...................... ");
         queryCounter = 1;
 
-        Shared.sendQuery(msgContent, dealerSock);
+        Shared.sendQuery(input.getBytes(), dealerSock);
     }
 
     private byte[] concatByteArray(byte[] a, byte[] b) {
@@ -179,7 +184,7 @@ public class PeerNode implements Runnable {
     }
 
     private void connectTo(String clusterName) {
-        //  Subscribe to the insertbe of cluster for any inserting/searching req
+        //  Subscribe to the publish socket of cluster for any inserting/searching req
         subSock = ctx.createSocket(ZMQ.SUB);
         subSock.subscribe("".getBytes());
         subSock.connect(String.format(Shared.LOCAL_PUBLISH_SOCK, clusterName));
@@ -214,10 +219,8 @@ public class PeerNode implements Runnable {
     }
 
     private int doInsert(byte[] inputBytes) {
-        System.out.println("PEER: added shit to my db");
         // Convert str to bitset
         BitSet inputSet = new BitSet(chunkBits);
-//        BitSet inputSet = BitSet.valueOf(inputBytes);
         if (inputSet.size() != chunkBits) return 0;
 
         // Find suitable memory
@@ -298,11 +301,11 @@ public class PeerNode implements Runnable {
 //                    String clusterAddr = msg.peekFirst().toString();
 
                     int msgLength = msgContent.length;
-                    byte[] peerDst = Arrays.copyOfRange(msgContent, msgLength - 2, msgLength - 1);
-                    byte[] query = Arrays.copyOfRange(msgContent, 0, msgContent.length - 2);
-                    System.out.println("PEER NODE: Query " + new String(query));
+//                    byte[] peerDst = Arrays.copyOfRange(msgContent, msgLength - 2, msgLength - 1);
+//                    byte[] query = Arrays.copyOfRange(msgContent, 0, msgContent.length - 2);
+                    System.out.println("PEER NODE: Query " + new String(msgContent));
 
-                    sendResponse(doMatch(query), peerDst, dst.getBytes());
+                    sendResponse(doMatch(msgContent), dst.getBytes(), dst.getBytes());
                     break;
                 case 'R':
                     System.out.println("PEER NODE: received a response ");

@@ -82,10 +82,10 @@ public class PeerBroker {
 
                     byte[] msgContent = m.Command;
                     int msgLength = msgContent.length;
-                    byte[] peerDst = Arrays.copyOfRange(msgContent, msgLength - 2, msgLength - 1);
-                    byte[] response = Arrays.copyOfRange(msgContent, 0, msgContent.length - 3);
+//                    byte[] peerDst = Arrays.copyOfRange(msgContent, msgLength - 2, msgLength - 1);
+//                    byte[] response = Arrays.copyOfRange(msgContent, 0, msgContent.length - 3);
 
-                    Shared.getResponseMessage(response, peerDst).send(self.routerSock);
+                    Shared.getResponseMessage(msgContent, m.Destination.getBytes()).send(self.routerSock);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
