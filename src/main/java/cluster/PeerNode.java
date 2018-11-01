@@ -39,6 +39,7 @@ public class PeerNode implements Runnable {
     private Boolean isGui;
     private PeerNodeGui myGui;
     private Object[][] storageArr;
+    private int queryCounter = 0;
 
     public PeerNode(PeerBroker cluster, int nChunks, int chSize, int thresholdT, int C, boolean withGui, int index) {
         peerCluster = cluster;
@@ -91,10 +92,22 @@ public class PeerNode implements Runnable {
                 // Handle response R[data, dest]
                 ZMsg incomingMsg = ZMsg.recvMsg(dealerSock);
                 System.out.println("PEER NODE: received response\n" + incomingMsg);
+                doHandleResponse(incomingMsg);
 
                 return;
             }
         }
+    }
+
+    private void resetQueryCounter() {
+        queryCounter = 0;
+    }
+
+    private void doHandleResponse(ZMsg incomingMsg) {
+        String sender = incomingMsg.popString();
+        byte[] content = incomingMsg.pop().getData();
+        myGui.printlnOut("From sender: " + sender);
+        myGui.printlnOut("Content: " + new String(content));
     }
 
     public void sendInsert(String input) {
@@ -108,6 +121,9 @@ public class PeerNode implements Runnable {
     public void sendQuery(String input) {
         byte[] msgContent = concatByteArray(input.getBytes(), myID);
         System.out.println("PEER NODE: @sendQuery " + input);
+        myGui.printlnOut("Waiting for response from cluster broker...................... ");
+        queryCounter = 1;
+
         Shared.sendQuery(msgContent, dealerSock);
     }
 

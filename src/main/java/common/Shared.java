@@ -62,7 +62,9 @@ public class Shared {
 
         //ZFrame zf = new ZFrame("k");
         outgoing.add(q);
-        outgoing.add(new ZFrame("A"));
+//        outgoing.add(new ZFrame("A"));
+        outgoing.add("A");
+
         return outgoing;
         //outgoing.send(dealer);
 

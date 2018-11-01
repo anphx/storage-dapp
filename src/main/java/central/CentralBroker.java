@@ -29,7 +29,7 @@ public class CentralBroker {
         } catch (InterruptedException e) {
             System.err.println("ROUTER of the central broker was sleeping and waiting for others to join... Please don't interrupt!");
         }
-        System.out.println("finished Initing Central Broker");
+        System.out.println("finished initializing Central Broker");
     }
 
     public static void cleanup() {
@@ -43,7 +43,7 @@ public class CentralBroker {
         //outgoing=ZMsg.newStringMsg("ACK");
         //outgoing.push(incoming.Source);
         //outgoing.send(router);
-        System.out.println("handdling message..........");
+        System.out.println("handling message..........");
         m.dump();
         ZMsg msg;
         try {
@@ -75,7 +75,6 @@ public class CentralBroker {
             }
         } catch (NullPointerException e) {
             e.printStackTrace();
-            //TODO: protocol error here
         }
     }
 

@@ -84,7 +84,7 @@ public class testPeerBroker {
         //mainloop
         while(true)
         {
-            //used to be dealer -- TODO: POLL this shit
+            //used to be dealer
             incoming=ZMsg.recvMsg(subscriber);
             new Msg(incoming).dump();
             System.out.print("DEALER: incoming message of size: "+incoming.size());
