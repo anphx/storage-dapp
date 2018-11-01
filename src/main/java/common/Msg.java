@@ -19,7 +19,13 @@ public class Msg {
             this.Destination = inp.popString();
             this.Command = inp.pop().getData();
             this.Type = inp.popString();
-        } else {//WTF?
+        } else if (size == 5) {
+            this.Source = inp.popString();
+            inp.popString();
+            this.Destination = inp.popString();
+            this.Command = inp.pop().getData();
+            this.Type = inp.popString();
+        } else {
             inp.dump();
             //throw new Exception("unsupported message type: Size mismatch...");
         }

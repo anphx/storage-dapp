@@ -51,10 +51,10 @@ public class testPeerBroker {
             }
         }));
 
-        Resources.getInstance().getAddMessage("add query".getBytes()).send(dealer);
+//        Resources.getInstance().getAddMessage("add query".getBytes()).send(dealer);
         Resources.getInstance().getJoinMessage(dealer.getIdentity()).send(dealer);
-        Resources.getInstance().getQueryMessage("add query".getBytes()).send(dealer);
-        Resources.getInstance().getResponseMessage("response body".getBytes(),dealer.getIdentity()).send(dealer);
+//        Resources.getInstance().getQueryMessage("add query".getBytes()).send(dealer);
+//        Resources.getInstance().getResponseMessage("response body".getBytes(),dealer.getIdentity()).send(dealer);
 
 //        sendAdd("add query".getBytes());
 //        sendJoin("join address");

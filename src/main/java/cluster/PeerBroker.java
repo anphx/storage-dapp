@@ -1,6 +1,10 @@
+/**
+ * @author anpham
+ * Local cluster or a leaf cluster
+ */
+
 package cluster;
 
-import central.Resources;
 import common.Msg;
 import common.Shared;
 import org.zeromq.ZContext;
@@ -9,11 +13,6 @@ import org.zeromq.ZMsg;
 
 import java.util.Arrays;
 import java.util.Random;
-
-/**
- * @author anpham
- * Local cluster or a leaf cluster
- */
 
 public class PeerBroker {
     public static ZContext ctx;
@@ -34,14 +33,10 @@ public class PeerBroker {
 
         self.initializeNodes(args);
 
-//        while (!Thread.currentThread().isInterrupted()) {
         while (true) {
             //  Poll for activity, or 1 second timeout
-//            ZMQ.PollItem items[] = {new ZMQ.PollItem(self.insertfe, ZMQ.Poller.POLLIN)};
             ZMQ.Poller poller = self.ctx.createPoller(3);
             poller.register(self.routerSock, ZMQ.Poller.POLLIN);
-//            poller.register(self.pubSock, ZMQ.Poller.POLLIN);
-            // two sockets to deal with Cloud Central
             poller.register(self.subscriber, ZMQ.Poller.POLLIN);
             poller.register(self.dealer, ZMQ.Poller.POLLIN);
 
@@ -51,38 +46,46 @@ public class PeerBroker {
 
             ZMsg result;
 
-            //  Handle incoming status messages
             if (poller.pollin(0)) {
+                //  Handle incoming status messages from Router socket
                 result = ZMsg.recvMsg(self.routerSock);
-//                System.out.println("BROKER: Receive request from client:\n" + result);
-                // do sth and wait for response here
-//                self.routerSock.send("Insert req RECEIVED: " + result);
+                try {
+                    result.send(self.dealer, false);
+                    System.out.println("BROKER: Receive request from cloud dealer: " + result);
 
-                System.out.println("BROKER: Broadcast request from client:\n" + result);
-//                self.pubSock.send("Broadcast Insert req received: " + result);
-                result.send(pubSock,false);
-                result.send(dealer);
+                    if (result.peekLast().toString().charAt(0) != 'R') {
+                        System.out.println("BROKER: Send to pubSock");
+                        result.send(self.pubSock);
+                    } else {
+                        System.out.println("BROKER: Forward this to routerSock");
+                        result.send(self.routerSock);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else if (poller.pollin(1)) {
                 // for published msg from central node
                 result = ZMsg.recvMsg(self.subscriber);
                 result.dump();
 
                 // AnP: Redirect this msg to all nodes.
-                result.send(pubSock);
-//                self.pubSock.send(result);
+                result.send(self.pubSock);
 
             } else if (poller.pollin(2)) {
-                // for handling requests from cloud
+                // for direct requests from cloud
                 result = ZMsg.recvMsg(self.dealer);
+                System.out.println("Receive response msg" + result);
 
                 try {
                     Msg m = new Msg(result);
+                    m.dump();
+
                     byte[] msgContent = m.Command;
                     int msgLength = msgContent.length;
                     byte[] peerDst = Arrays.copyOfRange(msgContent, msgLength - 2, msgLength - 1);
                     byte[] response = Arrays.copyOfRange(msgContent, 0, msgContent.length - 3);
 
-                    Resources.getResponseMessage(response, peerDst).send(routerSock);
+                    Shared.getResponseMessage(response, peerDst).send(self.routerSock);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -134,11 +137,13 @@ public class PeerBroker {
 //        context=new ZContext(1);
         subscriber = ctx.createSocket(ZMQ.SUB);
         dealer = ctx.createSocket(ZMQ.DEALER);
+        byte[] identity = new byte[2];
+        new Random().nextBytes(identity);
+        dealer.setIdentity(identity);
 
         //bindings....
         subscriber.connect(String.format(Shared.CENTRAL_ADDR, Shared.PUB_SUB_PROTOCOL, Shared.PUB_SUB_PORT));
         subscriber.subscribe("");
-        //dealer.setIdentity("0913404k4822".getBytes());
         dealer.connect(String.format(Shared.CENTRAL_ADDR, Shared.ROUTER_DEALER_PROTOCOL, Shared.ROUTER_DEALER_PORT));
 //                Resources.getInstance().ROUTER_DEALER_PROTOCOL,Resources.getInstance().ROUTER_DEALER_PORT));
         try {

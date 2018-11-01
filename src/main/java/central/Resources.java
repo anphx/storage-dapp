@@ -68,36 +68,37 @@ public class Resources {
         return rs;
     }
 
-    public static ZMsg getQueryMessage(byte[] q) {
-        ZMsg outgoing = new ZMsg();
-        outgoing.add(q);
-        outgoing.add("Q");
-        return outgoing;
-        //outgoing.send(dealer);
-    }
-
-    public static ZMsg getAddMessage(byte[] q) {
-
-        //ZMsg outgoing=ZMsg.newStringMsg("A");
-        ZMsg outgoing = new ZMsg();
-        //outgoing.add(new ZFrame("A"));
-
-        //ZFrame zf = new ZFrame("k");
-        outgoing.add(q);
-        outgoing.add(new ZFrame("A"));
-        return outgoing;
-        //outgoing.send(dealer);
-
-    }
-
-    public static ZMsg getResponseMessage(byte[] resp, byte[] clusterAddr) {
-        ZMsg outgoing = ZMsg.newStringMsg("R");
-        outgoing.push(resp);
-        outgoing.push(clusterAddr);
-        return outgoing;
-        //outgoing.send(dealer);
-
-    }
+//    public static ZMsg getQueryMessage(byte[] q, byte[] clusterAddr) {
+//        ZMsg outgoing = new ZMsg();
+//        outgoing.add(clusterAddr);
+//        outgoing.add(q);
+//        outgoing.add("Q");
+//        return outgoing;
+//        //outgoing.send(dealer);
+//    }
+//
+//    public static ZMsg getAddMessage(byte[] q) {
+//
+//        //ZMsg outgoing=ZMsg.newStringMsg("A");
+//        ZMsg outgoing = new ZMsg();
+//        //outgoing.add(new ZFrame("A"));
+//
+//        //ZFrame zf = new ZFrame("k");
+//        outgoing.add(q);
+//        outgoing.add(new ZFrame("A"));
+//        return outgoing;
+//        //outgoing.send(dealer);
+//
+//    }
+//
+//    public static ZMsg getResponseMessage(byte[] resp, byte[] clusterAddr) {
+//        ZMsg outgoing = ZMsg.newStringMsg("R");
+//        outgoing.push(resp);
+//        outgoing.push(clusterAddr);
+//        return outgoing;
+//        //outgoing.send(dealer);
+//
+//    }
 
     public static ZMsg getJoinMessage(byte[] Clusteraddress) {
         ZMsg outgoing = ZMsg.newStringMsg("J");
