@@ -23,7 +23,7 @@ public class PeerNodeGui {
         btnInsert.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
             peerNode.sendInsert(txtInp.getText());
-            track("=========> Insert request sent: " + txtInfo.getText());
+            track("=========> Insert request sent: " + txtInp.getText());
             }
         });
 
@@ -41,11 +41,15 @@ public class PeerNodeGui {
     }
 
     public void track(String text) {
-        txtHistory.append(text);
+        txtHistory.append(text + "\n");
     }
 
-    public void printToStorage(String text) {
-        txtStorage.append(text + "\n");
+    public void printToStorage(String text, boolean newline) {
+        if (newline) {
+            txtStorage.append(text + "\n");
+        } else {
+            txtStorage.append(text);
+        }
     }
 
     public void printInfo(String text) {
@@ -54,7 +58,7 @@ public class PeerNodeGui {
 
     public void showup() {
         printInfo("Node ID: " + peerNode.getID() + "\n");
-        
+
         JFrame frame = new JFrame();
         frame.setContentPane(this.mainPanel);
         frame.pack();
