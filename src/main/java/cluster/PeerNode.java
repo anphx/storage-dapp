@@ -42,9 +42,12 @@ public class PeerNode implements Runnable {
     private Object[][] storageArr;
 
     private int queryCounter = 0;
-    private int index;
+    private int myIndex;
+    private int totalNodes;
+    private boolean canQuery = true;
+    private byte[] queryResult;
 
-    public PeerNode(PeerBroker cluster, int nChunks, int chSize, int thresholdT, int C, boolean withGui, int index) {
+    public PeerNode(PeerBroker cluster, int nChunks, int chSize, int thresholdT, int C, boolean withGui, int index, int total) {
         peerCluster = cluster;
         maxChunks = nChunks;
         chunkBits = chSize;
@@ -52,8 +55,9 @@ public class PeerNode implements Runnable {
         hammingT = thresholdT;
         isGui = withGui;
         sumThreshold = C;
-        this.index=index;
-//        myID = String.valueOf(index).getBytes();
+        myIndex = index;
+        totalNodes = total;
+//        myID = String.valueOf(myIndex).getBytes();
 
 
         ByteBuffer dbuf = ByteBuffer.allocate(2);
@@ -68,7 +72,7 @@ public class PeerNode implements Runnable {
     }
 
     public int getID() {
-        return index;
+        return myIndex;
     }
 
     public void run() {
@@ -81,12 +85,10 @@ public class PeerNode implements Runnable {
             myGui.showup();
             myGui.printInfo(constraints);
         }
-
-        boolean done = false;
+        ZMQ.Poller poller = ctx.createPoller(2);
 
         while (!Thread.currentThread().isInterrupted()) {
             //  Poll for activity, or 1 second timeout
-            ZMQ.Poller poller = ctx.createPoller(2);
             poller.register(subSock, ZMQ.Poller.POLLIN);
             poller.register(dealerSock, ZMQ.Poller.POLLIN);
 
@@ -100,13 +102,13 @@ public class PeerNode implements Runnable {
                 // Receive broadcast msg
                 ZMsg incomingMsg = ZMsg.recvMsg(subSock);
                 //@AmiR
-                //System.out.println("NODE-"+index+": Received BROADCAST msg from cluster:\n" + incomingMsg);
+                //System.out.println("NODE-"+myIndex+": Received BROADCAST msg from cluster:\n" + incomingMsg);
                 handleRequest(incomingMsg);
             } else if (poller.pollin(1)) {
                 // Handle response R[data, dest]
                 ZMsg incomingMsg = ZMsg.recvMsg(dealerSock);
                 //@AmiR
-                //System.out.println("NODE-"+index+": received response\n" + incomingMsg);
+                //System.out.println("NODE-"+myIndex+": received response\n" + incomingMsg);
                 doHandleResponse(incomingMsg);
 
                 return;
@@ -114,15 +116,40 @@ public class PeerNode implements Runnable {
         }
     }
 
-    private void resetQueryCounter() {
+    public void sendQuery(String input) {
+        if (!canQuery) return;
+//        byte[] msgContent = concatByteArray(input.getBytes(), myID);
+        //@AmiR
+        //System.out.println("NODE-"+myIndex+": SENDING QUERY: " + input);
+        if (isGui) {
+            myGui.printlnOut("Waiting for response from cluster broker...................... ");
+        }
+
+        // AnP: This is to mark the iteration of a query request
+        // use this to trace all responses and send another query
+        // turn on canQuery class only when this iteration is done
         queryCounter = 0;
+        canQuery = false;
+
+        Shared.sendQuery(input.getBytes(), dealerSock);
     }
 
     private void doHandleResponse(ZMsg incomingMsg) {
         String sender = incomingMsg.popString();
         byte[] content = incomingMsg.pop().getData();
-        myGui.printlnOut("From sender: " + sender);
-        myGui.printlnOut("Content: " + new String(content));
+        if (isGui) {
+            myGui.printlnOut("From sender: " + sender);
+            myGui.printlnOut("Content: " + new String(content));
+        }
+
+        if (queryCounter >= totalNodes) {
+            // AnP: All responses for query are received
+            // Checking terminate condition -> start new iteration or stop
+            queryResult = sumOf(queryResult, content);
+        } else {
+            // Accumulate all responses here
+            queryCounter++;
+        }
     }
 
     public void sendInsert(String input) {
@@ -130,20 +157,11 @@ public class PeerNode implements Runnable {
 //        outgoing.push(input.getBytes());
 //        outgoing.send(dealerSock);
         //@AmiR
-        //System.out.println("NODE-"+index+": SENDING INSERT " + input);
+        //System.out.println("NODE-"+myIndex+": SENDING INSERT " + input);
         Shared.sendAdd(input.getBytes(), dealerSock);
     }
 
-    public void sendQuery(String input) {
 
-//        byte[] msgContent = concatByteArray(input.getBytes(), myID);
-        //@AmiR
-        //System.out.println("NODE-"+index+": SENDING QUERY: " + input);
-        myGui.printlnOut("Waiting for response from cluster broker...................... ");
-        queryCounter = 1;
-
-        Shared.sendQuery(input.getBytes(), dealerSock);
-    }
 
     private byte[] concatByteArray(byte[] a, byte[] b) {
         byte[] content = new byte[a.length + b.length];
@@ -192,7 +210,7 @@ public class PeerNode implements Runnable {
     }
 
     private int doInsert(byte[] inputBytes) {
-        System.out.println("NODE-"+index+": added shit to my db");
+        System.out.println("NODE-"+ myIndex +": added shit to my db");
         // Convert str to bitset
 //        BitSet inputSet = new BitSet(chunkBits);
         if (inputBytes.length != chunkBytes) return 0;
@@ -211,6 +229,7 @@ public class PeerNode implements Runnable {
     }
 
     private void printStorageInfo() {
+        if (!isGui) return;
         myGui.printToStorage(new Date().toString() + ": ===============> Printing storage info....", true);
         myGui.printToStorage("Format: [location address], [data], [position-wise maximum value of data]", true);
 
@@ -229,7 +248,7 @@ public class PeerNode implements Runnable {
 
         if (currMax >= sumThreshold) return curr;
 //        if (input.size() != chunkBits) {
-//            System.out.println("NODE-"+index+"Invalid format of input, should be " + chunkBits + " bits in size");
+//            System.out.println("NODE-"+myIndex+"Invalid format of input, should be " + chunkBits + " bits in size");
 //            return curr;
 //        }
         byte[] result = new byte[chunkBits];
@@ -274,13 +293,12 @@ public class PeerNode implements Runnable {
 
     private void handleRequest(ZMsg msg) {
         //@AmiR
-        //System.out.print("NODE-"+index+" RECEIVED THIS: ");
+        //System.out.print("NODE-"+myIndex+" RECEIVED THIS: ");
         try {
             char cmdType = msg.peekLast().toString().charAt(0);
             byte[] msgContent;
             Msg parsedMsg = new Msg(msg);
 
-//            String dst = msg.popString();
             switch (cmdType) {
                 // ADD
                 case 'A':
@@ -300,7 +318,7 @@ public class PeerNode implements Runnable {
 
 //                    msgContent = msg.pop().getData();
                     msgContent = parsedMsg.Command;
-                    System.out.println("NODE-"+index+": HANDLING QUERY: " + new String(msgContent));
+                    System.out.println("NODE-"+ myIndex +": HANDLING QUERY: " + new String(msgContent));
 //                    sendResponse(doMatch(msgContent), dst.getBytes(), dst.getBytes());
                     sendResponse(doMatch(msgContent), parsedMsg.Source.getBytes(), parsedMsg.Source.getBytes());
 
@@ -308,7 +326,7 @@ public class PeerNode implements Runnable {
                 case 'R':
                     // AnP: Don't do anything here because we only handle direct response
                     //@AmiR
-                    //System.out.println("NODE-"+index+": HANDLING A RESPONSE.. ");
+                    //System.out.println("NODE-"+myIndex+": HANDLING A RESPONSE.. ");
 
                     //doHandleResponse(msgContent);
                     break;
@@ -321,7 +339,7 @@ public class PeerNode implements Runnable {
 
     public void sendResponse(byte[] resp, byte[] dst, byte[] clusterAddr) {
         byte[] content = concatByteArray(resp, dst);
-        System.out.println("NODE-"+index+": SENDING RESPONSE " + resp);
+        System.out.println("NODE-"+ myIndex +": SENDING RESPONSE " + resp);
         Shared.getResponseMessage(resp, clusterAddr).send(dealerSock);
     }
 }

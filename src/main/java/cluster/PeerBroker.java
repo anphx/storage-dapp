@@ -10,8 +10,6 @@ import common.Shared;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
-
-import java.util.Arrays;
 import java.util.Random;
 
 public class PeerBroker {
@@ -21,6 +19,10 @@ public class PeerBroker {
     private static ZMQ.Socket subscriber;
     private static ZMQ.Socket dealer;
     private String name;
+
+    private int numberOfNodes;
+    private int totalNodes = numberOfNodes * 1; //S=P*N -> P is the number of clusters
+
 
     public PeerBroker(String name) {
         this.name = name;
@@ -98,7 +100,7 @@ public class PeerBroker {
      * @param args numberOfNodes - nChunks - chunkSize - hammingThres - threshold C - numberOfGui
      */
     private void initializeNodes(String[] args) {
-        int numberOfNodes = Integer.parseInt(args[0]);
+        numberOfNodes = Integer.parseInt(args[0]);
         int nChunks = Integer.parseInt(args[1]);
         int chunkSize = Integer.parseInt(args[2]);
         int hammingThres = Integer.parseInt(args[3]);
