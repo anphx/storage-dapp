@@ -310,7 +310,7 @@ public class PeerNode implements Runnable {
                     int msgLength = msgContent.length;
 //                    byte[] peerDst = Arrays.copyOfRange(msgContent, msgLength - 2, msgLength - 1);
 //                    byte[] query = Arrays.copyOfRange(msgContent, 0, msgContent.length - 2);
-                    System.out.println("NODE-"+index+": HANDLING QUERY: " + new String(query));
+                    System.out.println("NODE-"+index+": HANDLING QUERY: " + new String(msgContent));
 
 
                     sendResponse(doMatch(msgContent), dst.getBytes(), dst.getBytes());
