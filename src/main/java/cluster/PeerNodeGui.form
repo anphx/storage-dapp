@@ -31,7 +31,12 @@
         <children>
           <component id="f762f" class="javax.swing.JTextArea" binding="txtInp">
             <constraints/>
-            <properties/>
+            <properties>
+              <background color="-1050"/>
+              <foreground color="-13750743"/>
+              <lineWrap value="true"/>
+              <margin top="5" left="5" bottom="5" right="5"/>
+            </properties>
           </component>
         </children>
       </scrollpane>
@@ -73,6 +78,8 @@
             <constraints/>
             <properties>
               <editable value="false"/>
+              <font name="Courier New"/>
+              <lineWrap value="true"/>
               <preferredSize width="200" height="100"/>
             </properties>
           </component>
@@ -126,10 +133,27 @@
             <constraints/>
             <properties>
               <editable value="false"/>
+              <lineWrap value="true"/>
             </properties>
           </component>
         </children>
       </scrollpane>
+      <component id="e47b2" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Storage summary"/>
+        </properties>
+      </component>
+      <component id="23a90" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="History Log"/>
+        </properties>
+      </component>
     </children>
   </grid>
 </form>

@@ -159,7 +159,7 @@ public class PeerNode implements Runnable {
             }
 
             if (isGui) {
-                myGui.printlnOut("===> Found this after 1 iteration ====> " + query.toByteArray());
+                myGui.printlnOut("===> Found this after 1 iteration ====> " + new String(query.toByteArray()));
             }
 
             // Checking terminate condition -> start new iteration or stop
@@ -183,7 +183,7 @@ public class PeerNode implements Runnable {
                     }
                     return;
                 }
-                if (numOfIteration >= chunkBytes) {
+                if (numOfIteration >= chunkBytes / 2) {
                     canQuery = true;
 
                     // AnP: Terminate because you've done enough
@@ -304,6 +304,7 @@ public class PeerNode implements Runnable {
         byte[] result = new byte[chunkBits];
 
         for (int i = 0; i < chunkBits; i++) {
+            
             result[i] = (byte) (curr[i] + data[i]);
         }
         return result;
@@ -311,12 +312,19 @@ public class PeerNode implements Runnable {
 
     private byte[] doMatch(byte[] query) {
         byte[] resultArr = new byte[chunkBits];
-        for (int i = 0; i < storageArr.length; i++) {
-            int addrDist = HammingDistance.d((byte[]) storageArr[i][0], query);
-            if (addrDist <= hammingT) {
-                resultArr = sumOf(resultArr, (byte[]) storageArr[i][1]);
+        if (query.length != chunkBytes) return resultArr;
+
+        try {
+            for (int i = 0; i < storageArr.length; i++) {
+                int addrDist = HammingDistance.d((byte[]) storageArr[i][0], query);
+                if (addrDist <= hammingT) {
+                    resultArr = sumOf(resultArr, (byte[]) storageArr[i][1]);
+                }
             }
+        } catch (IllegalArgumentException ex) {
+            myGui.printlnOut("<==== EXCEPTION " + ex.getMessage());
         }
+
         return resultArr;
     }
 
@@ -331,7 +339,10 @@ public class PeerNode implements Runnable {
             switch (cmdType) {
                 // ADD
                 case 'A':
+
                     msgContent = parsedMsg.Command;
+                    System.out.println("NODE-" + myIndex + ": HANDLING INSERT: " + new String(msgContent));
+
                     doInsert(msgContent);
                     break;
                 case 'Q':
