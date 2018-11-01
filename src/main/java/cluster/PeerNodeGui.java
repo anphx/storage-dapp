@@ -12,6 +12,7 @@ public class PeerNodeGui {
     private JTextArea txtOut;
     private JTextArea txtHistory;
     private JTextArea txtInfo;
+    private JTextArea txtStorage;
 
     private PeerNode peerNode;
 
@@ -21,7 +22,8 @@ public class PeerNodeGui {
 
         btnInsert.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                peerNode.sendInsert(txtInp.getText());
+            peerNode.sendInsert(txtInp.getText());
+            track("=========> Insert request sent: " + txtInfo.getText());
             }
         });
 
@@ -42,9 +44,17 @@ public class PeerNodeGui {
         txtHistory.append(text);
     }
 
-    public void showup() {
-        this.txtInfo.append("Node ID: " + peerNode.myID + "\n");
+    public void printToStorage(String text) {
+        txtStorage.append(text + "\n");
+    }
 
+    public void printInfo(String text) {
+        txtInfo.append(text + "\n");
+    }
+
+    public void showup() {
+        printInfo("Node ID: " + peerNode.getID() + "\n");
+        
         JFrame frame = new JFrame();
         frame.setContentPane(this.mainPanel);
         frame.pack();

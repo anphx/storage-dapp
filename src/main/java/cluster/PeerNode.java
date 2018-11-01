@@ -19,7 +19,6 @@ import org.zeromq.ZMsg;
 import smile.math.distance.HammingDistance;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Random;
 
@@ -66,6 +65,10 @@ public class PeerNode implements Runnable {
         connectTo(peerCluster.getName());
     }
 
+    public int getID() {
+        return index;
+    }
+
     public void run() {
         if (isGui) {
             String constraints = "" +
@@ -74,7 +77,7 @@ public class PeerNode implements Runnable {
 
             myGui = new PeerNodeGui(this);
             myGui.showup();
-//            myGui.printInfo("Constraint");
+            myGui.printInfo(constraints);
         }
 
         boolean done = false;
@@ -144,46 +147,6 @@ public class PeerNode implements Runnable {
         System.arraycopy(b, 0, content, a.length, b.length);
         return content;
     }
-
-//    public static void main(String[] args) {
-//        //TODO: change for deployment
-//        String name = args[0];
-//        PeerNode self = new PeerNode(new PeerBroker("Cl1"), 10, 16, 3, false);
-//        ZMQ.Socket insertfe = self.ctx.createSocket(ZMQ.REQ);
-//        insertfe.connect(String.format("ipc://%s-insertfe.ipc", "Cl1"));
-//
-//        ZMQ.Socket insertbe = self.ctx.createSocket(ZMQ.SUB);
-//        insertbe.subscribe("".getBytes());
-//        insertbe.connect(String.format("ipc://%s-insertbe.ipc", "Cl1"));
-//
-//        System.out.println(name + " sent insert REQ to broker----");
-//        insertfe.send(name + " want to insert sth.....");
-//        boolean done = false;
-//
-////        while (!done) {
-////            //  Poll for activity, or 1 second timeout
-////            ZMQ.Poller poller = self.ctx.createPoller(2);
-////            poller.register(insertfe, ZMQ.Poller.POLLIN);
-////            poller.register(insertbe, ZMQ.Poller.POLLIN);
-////
-////            int rc = poller.poll(10 * 1000);
-////            if (rc == -1)
-////                break; //  Interrupted
-////
-////            //  Handle incoming status messages
-////            if (poller.pollin(0)) {
-////                String result = new String(insertfe.recv(0));
-////                System.out.println("Server answer:\n" + result);
-////            } else if (poller.pollin(1)) {
-////                // Receive broadcast msg
-////                String result = new String(insertbe.recv(0));
-////                System.out.println("Server BROADCAST:\n" + result);
-////            } else {
-////                done = true;
-////            }
-////
-////        }
-//    }
 
     private int toByte(int xBits) {
         return Math.round(xBits / 8);
@@ -304,20 +267,19 @@ public class PeerNode implements Runnable {
                 case 'Q':
                     // AnP: msg content has 2 parts: [query][node_addressx2B]
                     // need to separate these parts here to process query only
-//                    String clusterAddr = msg.peekFirst().toString();
 
-                    int msgLength = msgContent.length;
+//                    String clusterAddr = msg.peekFirst().toString();
+//                    int msgLength = msgContent.length;
 //                    byte[] peerDst = Arrays.copyOfRange(msgContent, msgLength - 2, msgLength - 1);
 //                    byte[] query = Arrays.copyOfRange(msgContent, 0, msgContent.length - 2);
-                    System.out.println("NODE-"+index+": HANDLING QUERY: " + new String(msgContent));
 
+                    System.out.println("NODE-"+index+": HANDLING QUERY: " + new String(msgContent));
 
                     sendResponse(doMatch(msgContent), dst.getBytes(), dst.getBytes());
                     break;
                 case 'R':
                     System.out.println("NODE-"+index+": HANDLING A RESPONSE.. ");
-
-//                doHandleResponse(msgContent);
+                    // AnP: Don't do anything here because we only handle direct response
                     break;
 
             }
