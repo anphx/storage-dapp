@@ -21,7 +21,7 @@ public class PeerBroker {
     private String name;
 
     private int numberOfNodes;
-    private int totalNodes = numberOfNodes * 1; //S=P*N -> P is the number of clusters
+    private int totalNodes = numberOfNodes * 1; // S=P*N -> P is the number of clusters
 
 
     public PeerBroker(String name) {
@@ -122,7 +122,7 @@ public class PeerBroker {
                 withGui = true;
                 numberOfGui--;
             }
-            new Thread(new PeerNode(this, nChunks, chunkSize, hammingThres, cThres, withGui, i, 100)).start();
+            new Thread(new PeerNode(this, nChunks, chunkSize, hammingThres, cThres, withGui, i, totalNodes)).start();
         }
     }
 
