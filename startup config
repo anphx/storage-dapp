@@ -1,0 +1,7 @@
+#!/bin/bash
+sudo apt-get update
+sudo apt-get install openjdk-11-jdk -y
+curl  "https://raw.githubusercontent.com/an-pham/storage-dapp/master/clusterconfig.sh" --output clusterconfig.sh
+chmod +x clusterconfig.sh
+sh clusterconfig.sh
+
