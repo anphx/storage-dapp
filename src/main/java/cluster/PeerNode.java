@@ -19,11 +19,8 @@ import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 import smile.math.distance.HammingDistance;
 
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Date;
 import java.util.Random;
 
 
@@ -64,7 +61,7 @@ public class PeerNode implements Runnable {
         totalNodes = total;
 
         ByteBuffer dbuf = ByteBuffer.allocate(2);
-        dbuf.putShort((short)(index + 1));
+        dbuf.putShort((short) (index + 1));
         myID = dbuf.array(); // { 0, 1 }
 
         initializeStorage();
@@ -131,12 +128,16 @@ public class PeerNode implements Runnable {
         // turn on canQuery class only when this iteration is done
         numOfIteration = 1;
         queryResult = new byte[chunkBits];
-        prevResult = null;
+        prevResult = new byte[chunkBits];
         queryCounter = 0;
         myQuery = input;
         canQuery = false;
 
         Shared.sendQuery(input.getBytes(), dealerSock);
+        BitSet a = BitSet.valueOf(input.getBytes());
+        for (int i = 0; i < a.length(); i++) {
+            prevResult[i] = a.get(i) ? (byte)1 : (byte)0;
+        }
     }
 
     private void doHandleResponse(ZMsg incomingMsg) {
@@ -159,10 +160,11 @@ public class PeerNode implements Runnable {
             BitSet query = new BitSet(chunkBits);
             for (int i = 0; i < queryResult.length; i++) {
                 if (queryResult[i] >= 0) {
-                    query.set(i);
+                    query.set(i, true);
                     queryResult[i] = 1;
                 } else {
                     queryResult[i] = 0;
+                    query.set(i, false);
                 }
             }
 
@@ -171,40 +173,58 @@ public class PeerNode implements Runnable {
             }
 
             // Checking terminate condition -> start new iteration or stop
-            if (prevResult != null) {
+//            if (prevResult != null) {
                 int distance = HammingDistance.d(prevResult, queryResult);
 //                int distance = calcHamming(prevResult, queryResult);
+                if (distance > 0 && distance <= chunkBits / 2 && numOfIteration <= chunkBits / 2) {
+                    sendNextQuery(query);
 
-                if (distance == 0) {
+                } else if (distance == 0) {
                     canQuery = true;
 
-                    // AnP: Terminate with exact match
                     if (isGui) {
-                        myGui.printlnOut("===> Searching TERMINATED  match!!!!");
+                        myGui.printlnOut("===> Searching TERMINATED!!!! Found near match results!!!!");
                     }
                     return;
-                } else if (distance >= chunkBytes / 2) {
+                } else {
                     canQuery = true;
-
                     // AnP: Terminate for no reason
                     if (isGui) {
                         myGui.printlnOut("===> Searching TERMINATED!!!! No match found!!!!");
                     }
                     return;
-                } else if (numOfIteration >= chunkBits / 2) {
-                    canQuery = true;
-
-                    // AnP: Terminate because you've done enough
-                    if (isGui) {
-                        myGui.printlnOut("===> Searching TERMINATED!!!! Found near match results!!!");
-                    }
-                    return;
-                } else {
-                    sendNextQuery(query);
                 }
-            } else {
-                sendNextQuery(query);
-            }
+
+//                if (distance == 0) {
+//                    canQuery = true;
+//
+//                    // AnP: Terminate with exact match
+//                    if (isGui) {
+//                        myGui.printlnOut("===> Searching TERMINATED!!!! Found near match results!!!");
+//                    }
+//                    return;
+//                } else if (distance >= chunkBits / 2) {
+//                    canQuery = true;
+//
+//                    // AnP: Terminate for no reason
+//                    if (isGui) {
+//                        myGui.printlnOut("===> Searching TERMINATED!!!! No match found!!!!");
+//                    }
+//                    return;
+//                } else if (numOfIteration >= chunkBits / 2) {
+//                    canQuery = true;
+//
+//                    // AnP: Terminate because you've done enough
+//                    if (isGui) {
+//                        myGui.printlnOut("===> Searching TERMINATED!!!! Found near match results!!!");
+//                    }
+//                    return;
+//                } else {
+//                    sendNextQuery(query);
+//                }
+//            } else {
+//                sendNextQuery(query);
+//            }
         }
     }
 
@@ -281,14 +301,14 @@ public class PeerNode implements Runnable {
 
         Random rand = new Random();
         BitSet bs = new BitSet(chunkBits);
-        for (int i=0; i<chunkBits; i++) {
+        for (int i = 0; i < chunkBits; i++) {
             bs.set(i, rand.nextBoolean());
         }
         return bs;
     }
 
     private int doInsert(byte[] inputBytes) {
-       // System.out.println("NODE-" + myIndex + ": is adding chunk to my db...");
+        // System.out.println("NODE-" + myIndex + ": is adding chunk to my db...");
         if (inputBytes.length != chunkBytes) return 0;
         BitSet inputBs = BitSet.valueOf(inputBytes);
 
@@ -296,7 +316,7 @@ public class PeerNode implements Runnable {
         for (int i = 0; i < storageArr.length; i++) {
             // Compare hamming distance of location addr and input data
             //System.out.println("Amirrrrrrr: size of the bitset is: "+BitSet.valueOf((byte[])storageArr[i][0]).size() );
-            int addrDist = HammingDistance.d((BitSet)storageArr[i][0], inputBs);
+            int addrDist = HammingDistance.d((BitSet) storageArr[i][0], inputBs);
             if (addrDist <= hammingT) {
                 System.out.println("*****Storing in my db******");
                 storageArr[i][1] = sumAt(inputBs, i);
@@ -321,26 +341,26 @@ public class PeerNode implements Runnable {
             if (Math.abs(temp) > max) {
                 max = Math.abs(temp);
             }
-            result[i] = (byte)temp;
+            result[i] = (byte) temp;
         }
 //        storageArr[index][1] = result;
         storageArr[index][2] = max;
         return result;
     }
 
-    private void printStorageInfo() {
-        if (!isGui) return;
-        myGui.printToStorage(new Date().toString() + ": ======> Printing storage info.........", true);
-        myGui.printToStorage("Format: [location address], [data], [position-wise maximum value of data]", true);
-
-        for (int i = 0; i < storageArr.length; i++) {
-            // [address][data][max]
-            myGui.printToStorage(i + ": [", false);
-            myGui.printToStorage(new String(((BitSet)storageArr[i][0]).toByteArray()) + "], [", false);
-            myGui.printToStorage(storageArr[i][1] + "], [", false);
-            myGui.printToStorage(storageArr[i][2] + "]", true);
-        }
-    }
+//    private void printStorageInfo() {
+//        if (!isGui) return;
+//        myGui.printToStorage(new Date().toString() + ": ======> Printing storage info.........", true);
+//        myGui.printToStorage("Format: [location address], [data], [position-wise maximum value of data]", true);
+//
+//        for (int i = 0; i < storageArr.length; i++) {
+//            // [address][data][max]
+//            myGui.printToStorage(i + ": [", false);
+//            myGui.printToStorage(new String(((BitSet)storageArr[i][0]).toByteArray()) + "], [", false);
+//            myGui.printToStorage(storageArr[i][1] + "], [", false);
+//            myGui.printToStorage(storageArr[i][2] + "]", true);
+//        }
+//    }
 
     private byte[] sumOf(byte[] curr, byte[] data) {
         if (curr == null || data == null || curr.length != data.length) return curr;
@@ -359,7 +379,7 @@ public class PeerNode implements Runnable {
         try {
             for (int i = 0; i < storageArr.length; i++) {
 //                int addrDist = HammingDistance.d((byte[]) storageArr[i][0], query);
-                int addrDist = HammingDistance.d((BitSet)storageArr[i][0], BitSet.valueOf(query));
+                int addrDist = HammingDistance.d((BitSet) storageArr[i][0], BitSet.valueOf(query));
 
                 if (addrDist <= hammingT) {
                     resultArr = sumOf(resultArr, (byte[]) storageArr[i][1]);
@@ -384,7 +404,7 @@ public class PeerNode implements Runnable {
                 // ADD
                 case 'A':
                     msgContent = parsedMsg.Command;
-                    System.out.println("NODE-" + myIndex + ": HANDLING INSERT: " + new String(msgContent));
+//                    System.out.println("NODE-" + myIndex + ": HANDLING INSERT: " + new String(msgContent));
 
                     doInsert(msgContent);
                     break;
