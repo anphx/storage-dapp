@@ -148,7 +148,10 @@
         <children>
           <component id="fc78b" class="javax.swing.JTextArea" binding="txtOut">
             <constraints/>
-            <properties/>
+            <properties>
+              <editable value="false"/>
+              <lineWrap value="true"/>
+            </properties>
           </component>
         </children>
       </scrollpane>
