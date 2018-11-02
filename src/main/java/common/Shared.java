@@ -7,8 +7,8 @@ public class Shared {
     public static final String LOCAL_PUBLISH_SOCK = "ipc://%s-insertbe.ipc";
     public static final String LOCAL_ROUTER_SOCK = "ipc://%s-insertfe.ipc";
 
-    //public static final String CENTRAL_ADDR = "%s://54.186.10.30:%s";
-    public static final String CENTRAL_ADDR = "%s://localhost:%s";
+    public static final String CENTRAL_ADDR = "%s://54.186.10.30:%s";
+    //public static final String CENTRAL_ADDR = "%s://localhost:%s";
     public static final String CENTRAL_LOCAL_ADDR = "%s://*:%s";
 
     public static final int PUB_SUB_PORT = 5543;
