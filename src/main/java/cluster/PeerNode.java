@@ -136,7 +136,7 @@ public class PeerNode implements Runnable {
         Shared.sendQuery(input.getBytes(), dealerSock);
         BitSet a = BitSet.valueOf(input.getBytes());
         for (int i = 0; i < a.length(); i++) {
-            prevResult[i] = a.get(i) ? (byte)1 : (byte)0;
+            prevResult[i] = a.get(i) ? (byte) 1 : (byte) 0;
         }
     }
 
@@ -174,26 +174,26 @@ public class PeerNode implements Runnable {
 
             // Checking terminate condition -> start new iteration or stop
 //            if (prevResult != null) {
-                int distance = HammingDistance.d(prevResult, queryResult);
+            int distance = HammingDistance.d(prevResult, queryResult);
 //                int distance = calcHamming(prevResult, queryResult);
-                if (distance > 0 && distance <= chunkBits / 2 && numOfIteration <= chunkBits / 2) {
-                    sendNextQuery(query);
+            if (distance > 0 && distance <= chunkBits / 2 && numOfIteration <= chunkBits / 2) {
+                sendNextQuery(query);
 
-                } else if (distance == 0) {
-                    canQuery = true;
+            } else if (distance == 0) {
+                canQuery = true;
 
-                    if (isGui) {
-                        myGui.printlnOut("===> Searching TERMINATED!!!! Found near match results!!!!");
-                    }
-                    return;
-                } else {
-                    canQuery = true;
-                    // AnP: Terminate for no reason
-                    if (isGui) {
-                        myGui.printlnOut("===> Searching TERMINATED!!!! No match found!!!!");
-                    }
-                    return;
+                if (isGui) {
+                    myGui.printlnOut("===> Searching TERMINATED!!!! Found near match results!!!!");
                 }
+                return;
+            } else {
+                canQuery = true;
+                // AnP: Terminate for no reason
+                if (isGui) {
+                    myGui.printlnOut("===> Searching TERMINATED!!!! No match found!!!!");
+                }
+                return;
+            }
 
 //                if (distance == 0) {
 //                    canQuery = true;
