@@ -80,7 +80,8 @@ public class PeerNode implements Runnable {
         if (isGui) {
             String constraints = "" +
                     "Maximum storage offered: " + maxChunks + "\n" +
-                    "Data chunk size: " + chunkBits + "(bits) or " + chunkBytes + " (bytes)";
+                    "Data chunk size: " + chunkBits + " (bits) or " + chunkBytes + " (bytes)" +
+                    "Hamming Threshold: " + hammingT;
 
             myGui = new PeerNodeGui(this);
             myGui.showup();

@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="cluster.PeerNodeGui">
-  <grid id="27dc6" binding="mainPanel" layout-manager="GridLayoutManager" row-count="9" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="mainPanel" layout-manager="GridLayoutManager" row-count="10" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="5" left="5" bottom="5" right="5"/>
     <constraints>
-      <xy x="20" y="20" width="641" height="548"/>
+      <xy x="20" y="20" width="768" height="349"/>
     </constraints>
     <properties>
-      <preferredSize width="1000" height="450"/>
+      <preferredSize width="600" height="450"/>
     </properties>
     <border type="none"/>
     <children>
       <scrollpane id="b90f4">
         <constraints>
-          <grid row="6" column="0" row-span="2" col-span="2" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="-1" height="200"/>
+          <grid row="7" column="0" row-span="2" col-span="4" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="-1" height="100"/>
           </grid>
         </constraints>
         <properties/>
@@ -25,7 +25,8 @@
               <editable value="false"/>
               <lineWrap value="true"/>
               <maximumSize width="-1" height="-1"/>
-              <preferredSize width="0" height="100"/>
+              <preferredSize width="100" height="100"/>
+              <text value=""/>
             </properties>
           </component>
         </children>
@@ -48,17 +49,19 @@
       </component>
       <component id="da703" class="javax.swing.JTextArea" binding="txtInfo">
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="50"/>
+          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="50" height="50"/>
           </grid>
         </constraints>
         <properties>
+          <editable value="false"/>
+          <lineWrap value="true"/>
           <text value=""/>
         </properties>
       </component>
       <scrollpane id="12c1f">
         <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -75,15 +78,47 @@
       </scrollpane>
       <component id="bb8de" class="javax.swing.JLabel">
         <constraints>
-          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Output"/>
         </properties>
       </component>
+      <component id="5cb13" class="javax.swing.JButton" binding="btnInsert">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Chunk"/>
+        </properties>
+      </component>
+      <scrollpane id="8b33d">
+        <constraints>
+          <grid row="1" column="2" row-span="1" col-span="2" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="49bcf" class="javax.swing.JTextArea" binding="txtHistory">
+            <constraints/>
+            <properties>
+              <editable value="false"/>
+              <lineWrap value="true"/>
+            </properties>
+          </component>
+        </children>
+      </scrollpane>
+      <component id="23a90" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="History Log"/>
+        </properties>
+      </component>
       <component id="30b0a" class="javax.swing.JButton" binding="btnConvert">
         <constraints>
-          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="&lt;---&gt;"/>
@@ -91,63 +126,44 @@
       </component>
       <component id="839f0" class="javax.swing.JTextArea" binding="txtBitStr">
         <constraints>
-          <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
           </grid>
-        </constraints>
-        <properties/>
-      </component>
-      <component id="e47b2" class="javax.swing.JLabel">
-        <constraints>
-          <grid row="2" column="2" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="BitString"/>
-        </properties>
-      </component>
-      <component id="610c1" class="javax.swing.JButton" binding="clearConsoleButton" default-binding="true">
-        <constraints>
-          <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Clear console"/>
-        </properties>
-      </component>
-      <component id="23a90" class="javax.swing.JLabel">
-        <constraints>
-          <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="History Log"/>
-        </properties>
-      </component>
-      <component id="2662" class="javax.swing.JTextArea" binding="txtHistory">
-        <constraints>
-          <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <editable value="false"/>
           <lineWrap value="true"/>
-          <maximumSize width="-1" height="-1"/>
-          <preferredSize width="200" height="100"/>
         </properties>
       </component>
-      <component id="5cb13" class="javax.swing.JButton" binding="btnInsert">
+      <vspacer id="5d342">
         <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <text value="Chunk"/>
-        </properties>
-      </component>
+      </vspacer>
       <component id="1fc04" class="javax.swing.JButton" binding="btnSearch">
         <constraints>
-          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="195" height="30"/>
           </grid>
         </constraints>
         <properties>
           <text value="Search"/>
+        </properties>
+      </component>
+      <component id="610c1" class="javax.swing.JButton" binding="clearConsoleButton" default-binding="true">
+        <constraints>
+          <grid row="9" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Clear console"/>
+        </properties>
+      </component>
+      <component id="fc097" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="2" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Bit String"/>
         </properties>
       </component>
     </children>
