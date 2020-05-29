@@ -40,11 +40,6 @@ public class CentralBroker {
 
     public static void handleMessage(Msg m) {
         ZMsg outgoing;
-        //outgoing=ZMsg.newStringMsg("ACK");
-        //outgoing.push(incoming.Source);
-        //outgoing.send(router);
-        //System.out.println("handling message..........");
-        //m.dump();
         ZMsg msg;
         try {
 
@@ -52,26 +47,19 @@ public class CentralBroker {
                 case 'Q':
                     System.out.println("Query message");
                     msg = Shared.getQueryMessage(m.Command, m.Destination.getBytes());
-                    //msg.dump();
                     msg.send(publisher);
                     break;
                 case 'A':
                     System.out.println("Add message");
                     msg = Shared.getAddMessage(m.Command, publisher);
-                    //msg.dump();
                     msg.send(publisher);
                     break;
                 case 'R':
                     System.out.println("Response message");
-//                    Shared.getResponseMessage(m.Command, m.Destination.getBytes()).send(router);
                     // AnP: Source is the sender broker in this case
                     router.sendMore(m.Source);
                     router.send(m.Command);
                     break;
-                //            case 'J':
-                //                Resources.getInstance().getJoinMessage(m.Source.getBytes());
-                //                System.out.println("Join message");
-                //                break;
             }
         } catch (NullPointerException e) {
             e.printStackTrace();
@@ -91,7 +79,7 @@ public class CentralBroker {
             }
         }));
 
-        ZMsg outgoing;//= ZMsg.newStringMsg("ACK");
+        ZMsg outgoing;
 
         //mainloop
         Msg incoming = null;
@@ -100,15 +88,12 @@ public class CentralBroker {
 
         while (true) {
             int rc = poller.poll(1000);
-            //System.out.println("somewhere in main looop");
             if (rc == -1)
                 break; //  Interrupted
             if (poller.pollin(0)) {
                 try {
                     ZMsg msg = ZMsg.recvMsg(router);
-                    //msg.dump();
                     incoming = new Msg(msg);
-//                    incoming.dump();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
